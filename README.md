@@ -1,5 +1,7 @@
 # Generic Repository Client
 
+[![Build Status](https://api.travis-ci.org/kit-data-manager/base.png?branch=master)](https://travis-ci.org/kit-data-manager/base)
+
 The Generic Repository Client is a command line tool that can be used to access repositories based on KIT Data Manager. It supports basic operations like data ingest, download and listing of digital objects. Furthermore, the creation of basic administrative metadata elements, e.g. studies, investigations and organization units, is supported. 
 
 ## How to build
