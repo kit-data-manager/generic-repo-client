@@ -7,6 +7,7 @@ before_install:
    - git clone https://github.com/kit-data-manager/base
    - cd base
    - mvn install -DskipTests=true > /dev/null
+   - cd ../../
 
 script:
   mvn install -DskipTests=true
