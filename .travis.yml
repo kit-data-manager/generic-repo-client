@@ -5,6 +5,7 @@ before_install:
    - mkdir KITDM
    - cd KITDM
    - git clone https://github.com/kit-data-manager/base
+   - cd base
    - mvn install -DskipTests=true
 
 script:
