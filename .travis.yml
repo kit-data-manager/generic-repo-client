@@ -1,8 +1,7 @@
 
 language: java
 
-before_script:
-   # Build KITDM
+before_install:
    - mkdir KITDM
    - cd KITDM
    - git clone https://github.com/kit-data-manager/base
