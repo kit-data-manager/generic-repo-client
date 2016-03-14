@@ -1,0 +1,156 @@
+<!--
+
+    Copyright (C) 2014 Karlsruhe Institute of Technology 
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+<!--KIT Data Manager configuration file. This file contains all general properties used to configure your KIT Data Manager instance. 
+Depending on your setup some properties may or may not be needed (e.g. Liferay- or Elasticsearch-related settings), others are mandatory.
+-->
+<config>
+<general>
+	<!--Can be accessed e.g. by GUIs to send system mail. Please replace $HOSTNAME by the local hostname.-->
+	<systemMailAddress>${general.mail.sender}</systemMailAddress>
+	<mailServer>${general.mail.server}</mailServer>
+	<globalSecret>qr2I9Hyp0CBhUUXj</globalSecret>
+	<!--The base URL of your Web application, e.g. http://localhost:8080/KITDM. Please replace $HOSTNAME by the local hostname. -->
+	<baseUrl>${general.base.url}</baseUrl>
+	<!--Enable/Disable production mode to show/hide additional logging output.-->
+	<productionMode>true</productionMode>
+</general>
+
+<!--
+SimpleMonitoring-related settings.
+-->
+<simon>
+	<!--The path where the configuration files for the SimpleMonitoring are located. Please replace $KITDM_LOCATION by the absolut path of your KIT Data Manager installation.-->
+	<configLocation>${simon.config.location}</configLocation>
+</simon>
+<!--
+Elasticsearch-related settings.
+-->
+<elasticsearch>
+	<!--The cluster name used by KIT Data Manager to publish metadata. (default: KITDataManager)-->
+	<cluster>${elasticsearch.cluster}</cluster>
+	<!--The hostname of the node where metadata should be published to. (default: localhost)-->
+	<host>${elasticsearch.host}</host>
+	<!--The port of the Elasticsearch instance. (default: 9300)-->
+	<port>${elasticsearch.port}</port>
+	<!--The default index that is access for metadata publishing/querying. 
+	The index to which metadata is published depends on the published metadata schema. (default: dc)
+	-->
+	<index>${elasticsearch.default.index}</index>
+	<!--The elasticsearch document key which contains the fulltext representation of an entire document. 
+	The availability of this key depends on the metadata stored in the document. 
+	The default value is 'es.fulltext', this property should not be changed, 
+	-->
+	<!--fulltextKey>es.fulltext</fulltextKey-->
+</elasticsearch>
+<!--
+MetaDataManagement-related settings.
+-->
+<MetaDataManagement>
+    <PersistenceImplementations>
+      <PersistenceImplementation>
+        <!--Name of the persistence implementation-->
+        <Name>JPA</Name>
+        <!--Implementation class of the persistence implementation-->
+        <Class>edu.kit.dama.mdm.core.jpa.PersistenceFactoryJpa</Class>
+        <PersistenceUnits>
+          <!-- A list of persistence units (configured endpoints) to store metadata. 
+          In case of the default JPA implementation these persistence units are 
+          actual persistence units configured in a persistence.xml file using the 
+		  MetaDataManagement implementation defined above. JPA persistence units not using 
+		  this implementation are not listed here. For other implementations of the 
+		  MetaDataManagement, these persistence units are probably mapped to something different.
+
+          Attention: 
+		  
+		  PersistenceUnit labels should be the same for all implementations 
+          in order to be able to switch implementations.
+		  
+		  The default persistence unit can be marked by an attribute 'default=true', 
+		  otherwise the first entry is interpreted as default persistence unit used by the 
+		  implementation if no persistence unit is specified.
+		  -->
+		  <PersistenceUnit>AuthorizationPU</PersistenceUnit>  
+		  <PersistenceUnit>DataOrganizationPU</PersistenceUnit>
+		  <!--Default persistence unit if the used persistence unit is not explicitly named.-->
+		  <PersistenceUnit default="true">MDM-Core</PersistenceUnit>  
+		  <PersistenceUnit>StagingUnit</PersistenceUnit>
+        </PersistenceUnits>
+      </PersistenceImplementation>  
+    </PersistenceImplementations>
+  </MetaDataManagement>  
+<!--
+JPA-related settings.
+-->
+<persistence>
+	<!--The default persistence unit for KIT Data Manager Staging services.
+	Currently, staging persistence does not support the KIT Data Manager MetaDataManagement. 
+	Therefore, they are configured separately. After switching to KIT Data Manager MetaDataManagement in the next version, 
+	this setting will be deprecated.
+	-->
+	<stagingPU>${persistence.stagingPU}</stagingPU>
+	<!--The default persistence unit for KIT Data Manager Authorization services.
+	Due to its complexity, the generic nature of KIT Data Manager MetaDataManagement is not feasible for Authorization services.
+	Therefore, they will be configured separately also in future releases.
+	-->
+	<authorizationPU>${persistence.authorizationPU}</authorizationPU>
+</persistence>
+<!--
+Staging-related settings.
+-->
+<staging>   
+  <adapters>
+    <dataOrganizationAdapter class="edu.kit.dama.staging.adapters.DefaultDataOrganizationServiceAdapter" target="LOCAL"/>        
+    <ingestInformationServiceAdapter class="edu.kit.dama.staging.adapters.DefaultIngestInformationServiceAdapter" target="LOCAL"/>
+    <downloadInformationServiceAdapter class="edu.kit.dama.staging.adapters.DefaultDownloadInformationServiceAdapter" target="LOCAL"/>
+    <storageVirtualizationAdapter class="edu.kit.dama.staging.adapters.DefaultStorageVirtualizationAdapter" target="LOCAL">
+	  <!--The Url where the managed repository storage (archive) is located. All data ingested into the repository system will be located here.
+		  Currently, the DefaultStorageVirtualizationAdapter only supports locally accessible Urls. However, this can be remote storages mounted
+		  into the local filesystem. Please replace $ARCHIVE_STORAGE by the absolute path of your archive location, e.g. file:///mnt/archive/
+		  Attention: Please pay attention to provide three (!) slashes. Otherwise, all data transfer services of KIT Data Manager won't work.
+		  -->
+      <archiveUrl>${staging.archive.url}</archiveUrl>
+	  <!--Pattern that is used to structure the data at 'archiveUrl'. Valid variables are:
+		$year: The current year, e.g. 2015
+		$month: The current month, e.g. 9
+		$day: The day of the month, e.g. 1
+		$owner: The userId of the user who has ingested the data, e.g. admin
+		$group: The groupId of the group on whose behalf the user has ingested the data, e.g. USERS
+	   -->
+      <pathPattern>${staging.archive.path.pattern}</pathPattern>
+    </storageVirtualizationAdapter>
+  </adapters>
+  <!--Possible overwrite for persistence unit defined in persistence section.-->
+  <!--persistenceUnit>${persistence.stagingPU}</persistenceUnit-->   
+  <remoteAccess>
+  	<!--The remove access Url of the staging service (currently not used). Please replace $HOSTNAME by the local hostname.-->
+    <restUrl>${staging.rest.url}</restUrl>
+  </remoteAccess>
+  <!--The max. number of single files that is transferred in parallel to/from the archive location to access point locations. 
+      This number refers to one single staging operation (ingest/download). If there are two staging operations running in parallel, 
+	  two times 'maxParallelTransfers' are used.-->  
+  <maxParallelTransfers>10</maxParallelTransfers>
+  <!--The max. number of simultaneous ingest/download operations. This setting is used by the TransferFinalizer tool. The tool itself 
+      handles one ingest/download per execution. However, by running the TransferFinalizer as Cron job multiple instances may run in 
+      parallel. As soon as maxParallelIngests/maxParallelDownloads is reached TransferFinalizer will return without doing anything.-->
+  <maxParallelIngests>2</maxParallelIngests>
+  <maxParallelDownloads>2</maxParallelDownloads>
+  <!--The max. lifetime in seconds before completed/failed ingests/downloads are removed from the database by the TransferFinalizer. 
+      The default value is one week.-->
+  <maxIngestLifetime>604800</maxIngestLifetime>
+  <maxDownloadLifetime>604800</maxDownloadLifetime>
+</staging>
+</config>

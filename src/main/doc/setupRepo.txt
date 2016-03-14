@@ -1,0 +1,492 @@
+Setup Administrative Metadata
+-----------------------------
+
+GenericRepoClient offers a basic commandline interface to manage the
+administrative metadata supported by KIT Data Manager.
+
+.Structure of the administrative metadata.
+image::StructureAdminMetadata.png["Structure of the administrative metadata",align="center"]
+
+The administrative metadata elements are mostly used internally by KIT Data 
+Manager and its services. These elements have a fixed schema and are typically 
+stored in a relational database. One important part is the Base Metadata defining 
+a guaranteed core set of metadata elements that are expected to be available for 
+each and every Digital Object managed by KIT Data Manager. Parts of the Base Metadata 
+are adopted from the Core Scientific Metadata Model (CSMD) 2.0, other parts of 
+this model were skipped to reduce complexity and to allow more flexibility. 
+
+Each Digital Object is part of an investigation. All Digital Objects of an investigation
+should share the same Metadata Schema(s). Multiple investigations may be linked
+to one study working on a certain topic of research. 
+
+Introduction
+~~~~~~~~~~~~
+The commandline interface is accessible via the command **bin/setupRepo**.
+The command itself is divided in 
+
+
+ * 1 subcommand to setup connection to repository and webDAV
+ * 8 subcommands to create/edit the administrative metadata supported by the KIT Data Manager.
+
+Each subcommand has specific parameters to configure/parameterize the commands.
+
+Requirements
+^^^^^^^^^^^^
+NOTE: For managing the administrative metadata the connection to the repository has to
+be initialized in beforehand. Therefore the command **bin/setupRepo init -b -r**
+has to be executed at least once.
+
+Commands
+~~~~~~~~
+[[init]]
+Initialization
+^^^^^^^^^^^^^^
+For accessing the repository several settings have to be adapted to the
+specific environment. The **init** command has to be executed at least once 
+before you access the repository. If you want to change the settings it may be 
+called as often as you need. The settings 'RepoSettings.properties' are stored 
+in a directory called '.repoClient' in the home directory of the user.
+
+Requirements
+++++++++++++
+Before initializing the transfer settings an accesspoint has to be defined. This
+can be done via the web GUI of the KIT Data Manager which will be available via
+a browser (http://hostnameOfRepo:PortofRepo/KITDM).
+
+The **init** command distinguishs between 4 categories.
+
+. Base Settings
+. REST
+. Context
+. Transfer
+
+Description of the settings
++++++++++++++++++++++++++++
+Base Settings
++++++++++++++
+.Base Settings
+[cols="2>,10<,7<",frame="topbot",options="header"]
+|====================================================================
+|Key | Description | Example
+
+|RestServer |Root URL of all REST services. | http://kitdm.kit.edu:8080/KITDM
+
+|====================================================================
+
+REST
+++++
+.REST
+[cols="2>,10<,7<",frame="topbot",options="header"]
+|====================================================================
+|Key | Description | Example
+
+|accessKey |Access key for OAuth authentication via REST. | admin
+
+|accessSecret | Access secret for OAuth authentication via REST. | dama14
+
+|userId | Id of the user. (optional) | dama
+
+|====================================================================
+
+Context
++++++++
+.Context
+[cols="2>,10<,7<",frame="topbot",options="header"]
+|====================================================================
+|Key | Description | Example
+
+|group |Group to which all tasks are linked to. (Needed for access rights) | USERS
+
+|investigation | Investigation ID of investigation all tasks are linked to. |  1
+
+|====================================================================
+If no study / investigation is defined yet, the user will be asked to create
+a default study / investigation. Before writing these administrative metadata
+the writing has to be confirmed!
+
+Transfer
+++++++++
+.Transfer
+[cols="2>,10<,7<",frame="topbot",options="header"]
+|====================================================================
+|Key | Description | Example
+
+|AccessPoint | Protocol used for data transfer. |  3edf89b8-0597-47d4-b236-2cc291ce7e0e
+
+|Username |User name for webDAV access. | admin
+
+|Password | Password for webDAV access. | dama14
+
+|====================================================================
+
+Usage
++++++
+
+Initialize access and ingest settings for KIT Data Manager. 
+
+**Usage: init [options]**
+
+.Options for init command
+[cols="1,1,5a,1a",frame="topbot",options="header"]
+|====================================================================
+2+|Options | Description | Default
+
+|Short | Long | |
+
+| -a | --all |Initialize all (overwrites all other flags). | false
+
+| -b | --base | Initialize base settings for KIT DM (URL). | true
+
+|-c | --context | Initialize context settings for KIT DM (group, investigation).
+                | true
+
+| -d | --dryRun | Don't query values. Only test selected settings. | false
+
+| -r | --rest | Initialize REST authentication settings for KIT DM (accessKey,
+       accessSecret, userId). | true
+
+| -t | --transfer | Initialize accesspoint inclusive authentication for webDAV (username,
+       password). | true
+
+| -h | --help | Prints usage of command. | false
+
+|====================================================================
+
+If no category is defined the default settings will be chosen covering URL, accessKey,
+accessSecret, userId, group and investigation.
+
+[[createstudy]]
+Create Study
+^^^^^^^^^^^^
+
+Creates a new study. 
+In interactive mode all subsequent metadata will be queried too.
+
+Usage
++++++
+
+Create a new study for KIT Data Manager. 
+
+**Usage: createstudy [options]**
+
+.Options for createstudy command
+[cols="1,1,5a,1a",frame="topbot",options="header"]
+|====================================================================
+2+|Options | Description | Default
+
+|Short | Long | |
+
+| -e | --endDate |'End date' of the study. Format: yyyy-MM-dd (e.g.: 2015-03-11) | 2020-12-31
+
+| -i | --interactive | Query all values interactively via commandline. | false
+
+|-l | --legalNote | 'Legal note' of the study. | Any legal note.
+
+| -m | --managerId| 'User Id' of the manager. | ---
+
+| -n | --note | 'Note' of the study. | Any note.
+
+| -s | --startDate | 'Start date' of the study. Format: yyyy-MM-dd (e.g.: 2015-03-11) | current date
+
+| -t | --topic | 'Topic' of the study. | My first study
+
+| -v | --verbose | Turn on verbose reporting. | false
+
+| -h | --help | Prints usage of command. | false
+
+|====================================================================
+
+[[createinvestigation]]
+Create Investigation
+^^^^^^^^^^^^^^^^^^^^
+
+Creates a new investigation.
+In interactive mode all subsequent metadata will be queried too.
+
+Usage
++++++
+
+Create a new investigation for KIT Data Manager. 
+
+**Usage: createinvestigation [options]**
+
+.Options for createinvestigation command
+[cols="1,1,5a,1a",frame="topbot",options="header"]
+|====================================================================
+2+|Options | Description | Default
+
+|Short | Long | |
+
+| -d | --description| 'Description' of the investigation. | Any description.
+
+| -e | --endDate |'End date' of the investigation. Format: yyyy-MM-dd (e.g.: 2015-03-11) | 2020-12-31
+
+| -i | --interactive | Query all values interactively via commandline. | false
+
+|-n | --note | 'Note' of the investigation. | Any legal note.
+
+| -s | --startDate | 'Start date' of the investigation. Format: yyyy-MM-dd (e.g.: 2015-03-11) | current date
+
+| -t | --topic| 'Topic' of the investigation. | My first investigation.
+
+| -u | --studyId | 'StudyId' of the investigation. If no Id is given interactive mode will be
+       activated. | ---
+
+| -v | --verbose | Turn on verbose reporting. | false
+
+| -h | --help | Prints usage of command. | false
+
+|====================================================================
+ 
+
+[[createschema]]
+Create Metadata Schema
+^^^^^^^^^^^^^^^^^^^^^^
+
+Creates a new metadata schema.
+
+Usage
++++++
+
+Create a new metadata schema for KIT Data Manager. 
+
+**Usage: createschema [options]**
+
+.Options for createschema command
+[cols="1,1,5a,1a",frame="topbot",options="header"]
+|====================================================================
+2+|Options | Description | Default
+
+|Short | Long | |
+
+| -d | --identifier| 'Metadata schema identifier' of the metadata schema. | example
+
+| -i | --interactive | Query all values interactively via commandline. | false
+
+| -u | --url | 'Metadata schema URL' of the metadata schema. | http://example.org/schema/2015-01
+
+| -v | --verbose | Turn on verbose reporting. | false
+
+| -h | --help | Prints usage of command. | false
+
+|====================================================================
+
+[[createorganizationunit]]
+Create Organization Unit
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Creates a new organization unit.
+
+Usage
++++++
+
+Create a new organization unit for KIT Data Manager. 
+
+**Usage: createorganizationunit [options]**
+
+.Options for createorganizationunit command
+[cols="1,1,5a,1a",frame="topbot",options="header"]
+|====================================================================
+2+|Options | Description | Default
+
+|Short | Long | |
+
+| -a | --address | 'Address' of the organization unit. | Einsteinstr. 1
+
+| -y | --city | 'City' of the organization unit. | Albertville
+
+| -c | --country | 'Country' of the organization unit. | Germany
+
+| -m | --managerId | 'User Id' of the manager of the study. | ---
+
+| -n | --ouname | 'Organization unit name' of the organization unit. | Research center
+
+| -w | --website |'Website' of the organization unit.  | http://www.example.edu
+
+| -z | --zipcode | 'Zip code' of the organization unit. | 12345
+
+| -i | --interactive | Query all values interactively via commandline. | false
+
+| -v | --verbose | Turn on verbose reporting. | false
+
+| -h | --help | Prints usage of command. | false
+
+|====================================================================
+
+[[createtask]]
+Create Task
+^^^^^^^^^^^
+
+Creates a new task.
+
+Usage
++++++
+
+Create a new task for KIT Data Manager. 
+
+**Usage: createtask [options]**
+
+.Options for createtask command
+[cols="1,1,5a,1a",frame="topbot",options="header"]
+|====================================================================
+2+|Options | Description | Default
+
+|Short | Long | |
+
+| -t | --task | 'Label' of the task. | Manager
+
+| -i | --interactive | Query all values interactively via commandline. | false
+
+| -v | --verbose | Turn on verbose reporting. | false
+
+| -h | --help | Prints usage of command. | false
+
+|====================================================================
+
+[[updatestudy]]
+Update Study
+^^^^^^^^^^^^
+
+Update/edit an existing study.
+
+Usage
++++++
+
+Update an existing study for KIT Data Manager. All values are queried interactively
+via commandline. If no study ID is given also this value will be queried.
+
+**Usage: updatestudy [options]**
+
+.Options for updatestudy command
+[cols="1,1,5a,1a",frame="topbot",options="header"]
+|====================================================================
+2+|Options | Description | Default
+
+|Short | Long | |
+
+| -s | --studyId | 'Id' of the study. | ---
+
+| -i | --interactive | Query all values interactively via commandline. | false
+
+| -v | --verbose | Turn on verbose reporting. | false
+
+| -h | --help | Prints usage of command. | false
+
+|====================================================================
+
+[[updateinvestigation]]
+Update Investigation
+^^^^^^^^^^^^^^^^^^^^
+
+Update/edit an existing investigation.
+
+Usage
++++++
+
+Update an existing investigation for KIT Data Manager. All values are queried interactively
+via commandline. If no investigation ID is given also this value will be queried.
+
+**Usage: updateinvestigation [options]**
+
+.Options for updateinvestigation command
+[cols="1,1,5a,1a",frame="topbot",options="header"]
+|====================================================================
+2+|Options | Description | Default
+
+|Short | Long | |
+
+| -d | --investigationId | 'Id' of the investigation. | ---
+
+| -i | --interactive | Query all values interactively via commandline. | false
+
+| -v | --verbose | Turn on verbose reporting. | false
+
+| -h | --help | Prints usage of command. | false
+
+|====================================================================
+ 
+[[updateorganization]]
+Update Organization Unit
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Update/edit an existing investigation.
+
+Usage
++++++
+
+Update an existing investigation for KIT Data Manager. All values are queried interactively
+via commandline. If no organization unit ID is given also this value will be queried.
+
+**Usage: updateorganization [options]**
+
+.Options for updateorganization command
+[cols="1,1,5a,1a",frame="topbot",options="header"]
+|====================================================================
+2+|Options | Description | Default
+
+|Short | Long | |
+
+| -o | --organizationUnitId | 'Id' of the organization unit. | ---
+
+| -i | --interactive | Query all values interactively via commandline. | false
+
+| -v | --verbose | Turn on verbose reporting. | false
+
+| -h | --help | Prints usage of command. | false
+
+|====================================================================
+ 
+Working with Multiple Environments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+If it is necessary to switch between at least two projects there is the possibility
+to store two or more settings in parallel instead of initializing it each time
+you want to switch. 
+
+<1> Call '**bin/setupRepo init -a**' to store a working setup (<homedir>/.repoClient/RepoSettings.properties)
+<2> Copy 'RepoSettings.properties' to 'Project1.properties', 'Project2.properties', ...
+<3> Generate two scripts for each setup. (see examples below for Linux and Windows)
+<4> Initialize each setup by calling '**bin/setupRepoProjectX init -a**' 
+<5> Use '**bin/repoClientProjectX ...'** for the according project
+
+Linux
+^^^^^
+setupRepoProject1
+--------------------------------------
+#!/bin/sh
+# Set environment variable
+REPO_SETTINGS=~/.repoClient/Project1.properties
+export REPO_SETTINGS
+
+cd repoClientInstallationDirectory
+bin/setupRepo "$@" 
+--------------------------------------
+repoClientProject1
+--------------------------------------
+#!/bin/sh
+# Set environment variable
+REPO_SETTINGS=~/.repoClient/Project1.properties
+export REPO_SETTINGS
+
+cd repoClientInstallationDirectory
+bin/repoClient "$@" 
+--------------------------------------
+
+Windows
+^^^^^^^
+setupRepoProject1.bat
+--------------------------------------
+# Set environment variable
+SET REPO_SETTINGS=%UserProfile%\.repoClient\Project1.properties
+
+cd repoClientInstallationDirectory
+bin\setupRepo.bat %* 
+--------------------------------------
+repoClientProject1.bat
+--------------------------------------
+#!/bin/sh
+# Set environment variable
+SET REPO_SETTINGS=%UserProfile%\.repoClient\Project1.properties
+
+cd repoClientInstallationDirectory
+bin\repoClient %*" 
+--------------------------------------

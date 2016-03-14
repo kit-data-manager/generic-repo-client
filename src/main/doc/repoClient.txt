@@ -1,0 +1,122 @@
+Generic Repo Client
+-------------------
+
+GenericRepoClient offers a basic commandline interface to communicate 
+with a digital repository provided by KIT Data Manager.
+
+Requirements
+^^^^^^^^^^^^
+NOTE: For managing digital objects the connections to the repository and to webDAV
+have to be initialized in beforehand. Therefore the command **bin/setupRepo init -a**
+has to be executed at least once.
+To test the settings use the command **bin/setupRepo init -a -d** (For more details
+see <<init>>)
+
+Introduction
+~~~~~~~~~~~~
+The commandline interface is accessible via the command **bin/repoClient**.
+The command itself is divided in 3 subcommands tied to the life cycle of the
+data:
+
+- Ingest
+- Retrieval/List
+- Access
+
+Each subcommand has specific parameters to configure/parameterize the commands.
+
+Commands
+~~~~~~~~
+
+Ingest
+^^^^^^
+The **ingest** command uploads local data to the predefined repository. The
+settings have to be initialized in beforehand. (see <<init>>)
+
+Usage
++++++
+
+Ingest data to KIT Data Manager.
+
+**Usage: ingest [options]**
+
+.Options for ingest command
+[cols="1,1,5a,1a",frame="topbot",options="header"]
+|====================================================================
+2+|Options | Description | Default
+
+|Short | Long | |
+
+| -i | --inputdir | The input directory. All files from this directory will be ingested to
+       repository. |
+
+| -n | --note | Note added to the administrative metadata. | 
+
+| -h | --help | Prints usage of command. | false
+
+|====================================================================
+
+**Example:** _repoClient ingest -i /path/to/data -n "Any note\nsplitted in two lines."_
+
+List
+^^^^
+The **list** command lists all readable digital objects of the predefined repository. The
+settings have to be initialized in beforehand. (see <<init>>)
+
+Usage
++++++
+
+List all 'DigitalObjectIdentifiers' of digital objects linked to predefined user/group/investigation.
+
+**Usage: list [options]**
+
+.Options for list command
+[cols="1,1,5a,1a",frame="topbot",options="header"]
+|====================================================================
+2+|Options | Description | Default
+
+|Short | Long | |
+
+| -r | --humanReadable | The output will be listed in a human readable format enriched by some metadata. | false
+
+| -v | --verbose | Shows also the predefined settings. | false
+
+| -h | --help | Prints usage of command. | false
+
+|====================================================================
+
+
+Download
+^^^^^^^^
+The **download** command downloads a digital object to the local file system. The
+settings have to be initialized in beforehand. (see <<init>>)
+
+Usage
++++++
+
+Download digital object. 
+**Attention:** In interactive mode the application is blocked until
+a digital object is selected by keyboard.
+
+**Usage: access [options]**
+
+.Options for access command
+[cols="1,1,5a,1a",frame="topbot",options="header"]
+|====================================================================
+2+|Options | Description | Default
+
+|Short | Long | |
+
+| -o | --outputdir | The output directory. All files from digital object will be downloaded to
+       this directory. |
+
+| -d | --digitalObjectId | DigitalObjectId' of the digital object. If no Id is given interactive
+       mode will be activated. |
+
+| -i | --interactive | Select one of the listed digital objects. | false
+
+| -h | --help | Prints usage of command. | false
+
+|====================================================================
+
+**Example:** _repoClient ingest -o /path/to/data -d 6b99f0f5-f822-433b-9f6c-e0ad492672f7_
+

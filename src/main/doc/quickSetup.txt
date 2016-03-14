@@ -1,0 +1,149 @@
+[[quicksetup]]
+Setup Generic Repo Client
+-------------------------
+
+
+Requirements
+~~~~~~~~~~~~
+NOTE: If you have a clean installation of the KIT Data Manager you have at least to
+define one AccessPoint via the webUI. (See manual of the KIT Data Manager -> Installing KIT Data Manager
+-> Basic Configuration -> Setting up a WebDav Access Point)
+
+
+Quick Setup
+~~~~~~~~~~~
+
+*For the impatient:*
+
+Just type 
+--------------------------------------
+bin/setupRepo init -a 
+--------------------------------------
+and follow the instructions.
+
+Example
+^^^^^^^
+
+[source,sh]
+--------------------------------------
+user@localhost:installationdir$ bin/setupRepo init -a
+Please input new value for 'RestServer' (URL of the REST server (e.g.: http://datamanager.kit.edu:8080/KITDM)!
+Return will sustain old value 'http://192.168.56.101:8080/KITDM':
+#input correct URL should be http://hostname:8080/KITDM
+
+Given URL for the REST server: 'http://192.168.56.101:8080/KITDM'
+#-------------------------------------------------------------------------
+
+Please input new value for 'AccessPoint'!
+Return will retain old value '0000-0000-0000-0000':
+Please choose via given index.
+*  1: f9abd53e-a331-496d-b31b-bc71e6f24746 - Simple WebDav access. [group: USERS] *
+1 [RETURN]
+
+Chosen accessPoint: 'f9abd53e-a331-496d-b31b-bc71e6f24746' - Simple WebDav access. [group: USERS]
+#-------------------------------------------------------------------------
+
+Please input new value for 'accessKey' (Credentials (key) for accessing KIT DM via REST)!
+Return will sustain old value 'admin':
+# should be correct [RETURN]
+
+Please input new value for 'accessSecret' (Credentials (secret) for accessing KIT DM via REST)!
+Return will sustain old value 'dama14':
+# should be correct [RETURN]
+
+Given accessKey/accessSecret: admin / dama14
+#-------------------------------------------------------------------------
+
+REST credentials are valid!
+Please input new value for 'userId' (User id of the user.)!
+Return will sustain old value 'admin':
+# should be correct [RETURN]
+
+Given user id: 'admin'
+#-------------------------------------------------------------------------
+
+Please input new value for 'group'!
+Return will retain old value 'USERS':
+Please choose via given index.
+*  1: USERS        - All Users (Default group containing all users.) *
+# should be correct[RETURN]
+
+No investigation exists!
+There has to be at least one study containing one investigation.
+Please create at least one study/investigation.
+#-------------------------------------------
+
+Do you want to save actual settings and generate a default study / investigation? (y/n)[y]
+# first time a study/investigation has to be created -> [RETURN]
+
+Study:
+#------
+     Topic: My first study
+      Note: Any note.
+Legal Note: Any legal note.
+Start Date:2015-03-05
+  End Date:2020-12-31
+#-------------------------------------------
+
+Do you want to write the study to the server? (y/n)[n]
+y[RETURN]
+Write study: 
+Write study: SUCCESSFUL
+Investigation:
+#-------------
+      Topic: My first investigation
+       Note: Any note about the investigation 'My first investigation'.
+Description: Any description.
+Start Date:2015-03-05
+  End Date:2020-12-31
+#-------------------------------------------
+
+Do you want to write the investigation to the server? (y/n)[n]
+y[RETURN]
+
+Add investigation to study: 
+Add investigation to study: SUCCESSFUL
+Please input new value for 'investigation'!
+Return will retain old value '1':
+Please choose via given index.
+*  1: 1            - My first study->My first investigation *
+1[RETURN]
+
+Chosen investigation: 1 (My first study->My first investigation)
+#-------------------------------------------------------------------------
+
+Please input new value for 'Username' (Username of the webDAV user.)!
+Return will sustain old value 'webdav':
+[RETURN]
+
+Please input new value for 'Password' (Password of the webDAV user.)!
+Return will sustain old value 'passwordForWebdav':
+# insert webdav password you defined during setup of KIT Data Manager [RETURN]
+
+Given values for webDAV access: webdav - passwordForWebdav
+#-------------------------------------------------------------------------
+
+WebDAV access is working!
+#-------------------------------------------------------------------------
+New settings:
+Given REST URL: http://hostname:8080/KITDM
+Chosen accessPoint: f9abd53e-a331-496d-b31b-bc71e6f24746
+Given accessKey: admin
+Given accessSecret: dama14
+Given user id: admin
+Chosen user group: USERS
+Chosen investigation: 1
+Given username (webDAV): webdav
+Given password (webDAV): passwordForWebdav
+#-------------------------------------------------------------------------
+
+Save settings? (y/n)[n]
+y[RETURN]
+
+Settings saved successfully!
+SUCCESSFUL
+--------------------------------------
+
+That's it. Now you are ready to ingest data to the KIT Data Manager using the 
+Generic Repo Client.
+

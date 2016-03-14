@@ -1,0 +1,5 @@
+read content
+of 
+a file containing
+multiple lines.
+#comments not skipped
