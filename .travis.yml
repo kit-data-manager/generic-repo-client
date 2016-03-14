@@ -6,7 +6,7 @@ before_install:
    - cd KITDM
    - git clone https://github.com/kit-data-manager/base
    - cd base
-   - mvn install -DskipTests=true > /dev/null
+   - travis_wait mvn install -DskipTests=true > /dev/null
    - cd ../../
 
 script:
