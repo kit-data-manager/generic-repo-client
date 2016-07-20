@@ -227,7 +227,7 @@ public class GenericAccessClient extends AbstractGenericRestClient {
       throw new IllegalArgumentException("No valid digital object identifier chosen!");
     }
     Long baseId = digitalObjectWrapper.getEntities().get(0).getBaseId();
-    DataOrganizationRestClient dorc = new DataOrganizationRestClient(pProperties.getRestUrl() + REST_DATA_ORGANIZATION_PATH + "organization/", pContext);
+    DataOrganizationRestClient dorc = new DataOrganizationRestClient(pProperties.getRestUrl() + REST_DATA_ORGANIZATION_PATH, pContext);
     try {
       dorc.getRootNode(pProperties.getUserGroup(), baseId, null, null, null);
     } catch (WebServiceException wse) {
