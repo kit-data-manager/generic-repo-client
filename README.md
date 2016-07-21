@@ -19,7 +19,7 @@ user@localhost:/home/user/generic-repo-client/$ mvn assembly:assembly
 [INFO] Scanning for projects...
 [INFO]
 [INFO] ------------------------------------------------------------------------
-[INFO] Building GenericRepoClient 1.3
+[INFO] Building GenericRepoClient 1.4
 [INFO] ------------------------------------------------------------------------
 [...]
 user@localhost:/home/user/generic-repo-client/$
