@@ -10,9 +10,9 @@ In order to build the Generic Repository Client you'll need:
 
 * Java SE Development Kit 7 or higher
 * Apache Maven 3
-* Build of the [KIT Data Manager 1.2 base](https://github.com/kit-data-manager/base) project
+* Build of the [KIT Data Manager 1.3 base](https://github.com/kit-data-manager/base) project
 
-After building KIT Data Manager 1.2 base and obtaining the sources of the BaReDemo, change to the folder where the sources are located, /home/user/generic-repo-client/. In the file 'src/main/assemble/filter.release.properties' you'll find the default settings suggested while initializing the client before using it the first time. Please modify the content of this file according to your needs or leave it unchanged. Afterwars, just call:
+After building KIT Data Manager 1.3 base and obtaining the sources of the BaReDemo, change to the folder where the sources are located, /home/user/generic-repo-client/. In the file 'src/main/assemble/filter.release.properties' you'll find the default settings suggested while initializing the client before using it the first time. Please modify the content of this file according to your needs or leave it unchanged. Afterwars, just call:
 
 ```
 user@localhost:/home/user/generic-repo-client/$ mvn assembly:assembly
