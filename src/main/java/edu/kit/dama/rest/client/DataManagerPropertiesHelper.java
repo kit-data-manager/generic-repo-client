@@ -50,6 +50,7 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.UUID;
 import org.apache.commons.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -296,36 +297,51 @@ public class DataManagerPropertiesHelper implements IDataManagerRestUrl {
       }
 
       // <editor-fold defaultstate="collapsed" desc="Ask for save settings if there are any changes.">
-      if (propertiesChanged) {
-        output.println(StdIoUtils.separator);
-        output.println("New settings:");
-        output.println("Given REST URL: " + properties.getRestUrl());
-        output.println("Chosen accessPoint: " + properties.getAccessPoint());
-        output.println("Given accessKey: " + properties.getAccessKey());
-        output.println("Given accessSecret: " + properties.getAccessSecret());
-        output.println("Given user id: " + properties.getUserId());
-        output.println("Chosen user group: " + properties.getUserGroup());
-//      output.println("Chosen study: " + properties.getStudy());
-        output.println("Chosen investigation: " + properties.getInvestigation());
-        output.println("Given username (webDAV): " + properties.getUserName());
-        output.println("Given password (webDAV): " + properties.getPassword());
-        output.println(StdIoUtils.separator);
-        String defaultAnswer = NO;
-        output.format("\nSave settings? (%s/%s)[%s]\n", YES, NO, defaultAnswer);
-        String inputValue = StdIoUtils.readStdInput(defaultAnswer);
-
-        if (inputValue.toLowerCase().contains(YES)) {
-          properties.saveProperties();
-          output.println("Settings saved successfully!");
-        }
-      }
+      saveSettings(propertiesChanged);
       // </editor-fold>
       success = true;
     } catch (InvalidDataManagerPropertiesException idmpe) {
       LOGGER.error("KIT Data Manager settings seems to be invalid!", idmpe);
+      if (propertiesChanged) {
+        output.println(StdIoUtils.separator);
+        output.println("Important: There are missing or wrong settings!");
+        output.println("Nevertheless you may want to save already edited settings.");
+        saveSettings(propertiesChanged);
+        output.println("Important: There are still missing or wrong settings!");
+      }
     }
 
     return success;
+  }
+  
+  /**
+   * Save edited settings if there are any changes.
+   * @param pPropertiesChanged Changes in properties.
+   */
+  private void saveSettings(boolean pPropertiesChanged) {
+    if (pPropertiesChanged) {
+      output.println(StdIoUtils.separator);
+      output.println("New settings:");
+      output.println("Given REST URL: " + properties.getRestUrl());
+      output.println("Chosen accessPoint: " + properties.getAccessPoint());
+      output.println("Given accessKey: " + properties.getAccessKey());
+      output.println("Given accessSecret: " + properties.getAccessSecret());
+      output.println("Given user id: " + properties.getUserId());
+      output.println("Chosen user group: " + properties.getUserGroup());
+//      output.println("Chosen study: " + properties.getStudy());
+      output.println("Chosen investigation: " + properties.getInvestigation());
+      output.println("Given username (webDAV): " + properties.getUserName());
+      output.println("Given password (webDAV): " + properties.getPassword());
+      output.println(StdIoUtils.separator);
+      String defaultAnswer = NO;
+      output.format("\nSave settings? (%s/%s)[%s]\n", YES, NO, defaultAnswer);
+      String inputValue = StdIoUtils.readStdInput(defaultAnswer);
+
+      if (inputValue.toLowerCase().contains(YES)) {
+        properties.saveProperties();
+        output.println("Settings saved successfully!");
+      }
+    }
   }
 
   /**
@@ -774,7 +790,11 @@ public class DataManagerPropertiesHelper implements IDataManagerRestUrl {
       LOGGER.debug("Overwriting the default configuration with the specific configuration of generic ingest client.");
       AbstractFile af = new AbstractFile(new URL(webDavUrl));
       af.list();
-      returnValue = true;
+      AbstractFile createDirectory = af.createDirectory(UUID.randomUUID().toString());
+      if (createDirectory.exists()) {
+        createDirectory.delete();
+        returnValue = true;
+      }
     } catch (MalformedURLException | AdalapiException e) {
       LOGGER.error(invalidWebDavSettings, e);
     }

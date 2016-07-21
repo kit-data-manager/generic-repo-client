@@ -93,10 +93,11 @@ public final class KIT_DM_REST_CLIENT {
    * @return CommandStatus or OperationStatus
    */
   public static CommandStatus createBaseMetaData(Study defaultStudy, Investigation defaultInvestigation, DigitalObject digitalObject, String group) {
-    LOGGER.debug("Creating base metadata for study: '{}'\ninvestigation: '{}'\ndigital data '{}'",
+    LOGGER.debug("Creating base metadata for study: '{}'\ninvestigation: '{}'\ndigital data '{}' for group '{}'",
             defaultStudy.getTopic(),
             defaultInvestigation.getTopic(),
-            digitalObject.getLabel());
+            digitalObject.getLabel(),
+            group);
 
     CommandStatus status = null;
 
@@ -149,7 +150,7 @@ public final class KIT_DM_REST_CLIENT {
     List<IngestInformation> listEntries = clientHelper.getIngestInformationIDs(Integer.MAX_VALUE, INGEST_STATUS.INGEST_FINISHED.getId());
     CommandStatus status = new CommandStatus(Status.SUCCESSFUL);
 
-		// Get all IngestID
+    // Get all IngestID
     // Get all Information for 'maxEntries' IDs
     int maxEntries = 10;
     int startIndex = 0;
@@ -210,8 +211,6 @@ public final class KIT_DM_REST_CLIENT {
    * from.
    * @param groupId The group the digital object belongs to.
    * @return CommandStatus or OperationStatus
-   * @throws FileNotFoundException will be thrown if the dataSource is not a
-   * valid File or Directory
    */
   public static CommandStatus performDataIngest(String digitalObjectID, String accessMethod, File dataSource, String groupId) throws FileNotFoundException {
 
@@ -305,6 +304,28 @@ public final class KIT_DM_REST_CLIENT {
    * valid directory
    */
   public static CommandStatus performDataDownload(String accessMethod, String digitalObjectID, File destination) throws FileNotFoundException {
+    return performDataDownload(accessMethod, digitalObjectID, destination, null);
+  }
+
+  /**
+   * This method can be used to download the actual digital data onto your local
+   * machine using ADALAPI The method uses WebDav protocol to download the data.
+   *
+   * @param accessMethod The accessmethod is the protocol that will be used to
+   * perform download for e.g. WebDav
+   * @param digitalObjectID The data identified by the digital object which will
+   * be downloaded
+   * @param destination The directory on the local machine where the data will
+   * be downloaded
+   * @param groupId The groupID the digital object belongs to.
+   *
+   * @return CommandStatus Status of the command (success or failed).
+   * @throws FileNotFoundException will be thrown if the destination is not a
+   * valid directory
+   */
+  public static CommandStatus performDataDownload(String accessMethod, String digitalObjectID, File destination, String groupId) throws FileNotFoundException {
+    LOGGER.debug("Performing data download for digital object identified by: " + digitalObjectID + " to data destination at path: " + destination.getAbsolutePath());
+    LOGGER.debug("User group: " + groupId);
 
     if (!destination.isDirectory()) {
       LOGGER.error("Invalid directory: " + destination.getAbsolutePath());
@@ -351,7 +372,30 @@ public final class KIT_DM_REST_CLIENT {
    * valid directory
    */
   public static CommandStatus performDataDownloadDataTransferClient(String accessMethod, String digitalObjectID, File localDestination) throws FileNotFoundException {
+    return performDataDownloadDataTransferClient(accessMethod, digitalObjectID, localDestination, null);
+  }
 
+  /**
+   * This method can be used to download the actual digital data onto your local
+   * machine using Data Transfer Client The method uses WebDav protocol to
+   * download the data.
+   *
+   * @param accessMethod The accessmethod is the protocol that will be used to
+   * perform download for e.g. WebDav
+   * @param digitalObjectID The data identified by the digital object which will
+   * be downloaded
+   * @param localDestination The directory on the local machine where the data
+   * will be downloaded
+   * @param groupId The groupID the digital object belongs to.
+   *
+   * @return CommandStatus
+   * @throws FileNotFoundException will be thrown if the destination is not a
+   * valid directory
+   */
+  public static CommandStatus performDataDownloadDataTransferClient(String accessMethod, String digitalObjectID, File localDestination, String groupId) throws FileNotFoundException {
+
+    LOGGER.debug("Performing data download for digital object identified by: " + digitalObjectID + " to data destination at path: " + localDestination.getAbsolutePath());
+    LOGGER.debug("User group: " + groupId);
     if (!localDestination.isDirectory()) {
       LOGGER.error("Invalid directory: " + localDestination.getAbsolutePath());
       throw new FileNotFoundException(localDestination.getAbsolutePath());

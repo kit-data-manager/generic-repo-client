@@ -147,7 +147,7 @@ public class GenericAccessClient extends AbstractGenericRestClient {
         digitalObjectId = selectDigitalObject(properties, context);
         LOGGER.info("digitalObjId = " + digitalObjectId);
         KIT_DM_REST_CLIENT.initialize(context, properties.getRestUrl());
-        returnStatus = KIT_DM_REST_CLIENT.performDataDownloadDataTransferClient(properties.getAccessPoint(), digitalObjectId, outputDir);
+        returnStatus = KIT_DM_REST_CLIENT.performDataDownloadDataTransferClient(properties.getAccessPoint(), digitalObjectId, outputDir, properties.getUserGroup());
       }
     } catch (FileNotFoundException | DataOrganizationException | IllegalArgumentException ex) {
       LOGGER.error(null, ex);

@@ -486,9 +486,11 @@ public class DataManagerPropertiesImpl {
       newProperties.load(fileReader);
       LOGGER.debug("Load ingest properties from file '{}'!", propertiesFile);
     } catch (IOException ex) {
-      LOGGER.error(null, ex);
+      LOGGER.warn(null, ex);
+      printActualSettings(newProperties);
     } catch (Exception npex) {
-      LOGGER.error(null, npex);
+      LOGGER.warn(null, npex);
+      printActualSettings(newProperties);
     }
     // check for content of environment variable
     // if available content of file system will be overwritten.
@@ -517,7 +519,22 @@ public class DataManagerPropertiesImpl {
         }
       }
     }
+    LOGGER.debug("The following properties are available:");
+    for (String item: newProperties.stringPropertyNames()) {
+      LOGGER.debug("{}={}",item, newProperties.getProperty(item));
+    }
     return newProperties;
+  }
+  
+  /**
+   * Print actual settings with given level.
+   * @param pActualProperties Instance holding properties.
+   */
+  private void printActualSettings(Properties pActualProperties) {
+    LOGGER.warn("The following properties are available:");
+    for (String item: pActualProperties.stringPropertyNames()) {
+      LOGGER.warn("{}={}",item, pActualProperties.getProperty(item));
+    }
   }
 
   /**

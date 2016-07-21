@@ -511,7 +511,7 @@ public class RESTClientHelperTest {
     pEntities.add(ingestInfo);
     ingestWrapper.setEntities(pEntities);
 
-    Mockito.when(stagingClient.createIngest("abcd", "accessMethod", "USERS", restContext)).thenReturn(ingestWrapper);
+    Mockito.when(stagingClient.createIngest("abcd", "accessMethod", new ArrayList<Long>(),"USERS", restContext)).thenReturn(ingestWrapper);
     IngestInformation createIngestEntity = clientHelper.createIngestEntity("abcd", "accessMethod", "USERS");
     Assert.assertEquals(INGEST_STATUS.PRE_INGEST_SCHEDULED, createIngestEntity.getStatusEnum());
   }

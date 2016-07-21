@@ -1,4 +1,4 @@
- /*
+/*
  * Copyright 2015 Karlsruhe Institute of Technology.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,7 +57,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author hartmann-v
  */
-public class GenericIngestClient extends AbstractGenericRestClient {
+public class GenericIngestClient extends AbstractGenericRestClient implements IMetadata4Ingest {
 
   /**
    * The logger
@@ -90,7 +90,20 @@ public class GenericIngestClient extends AbstractGenericRestClient {
    * @return command status.
    */
   public static CommandStatus ingestData(File pInputDir, String pNote) {
+    return ingestData(pInputDir, pNote, null);
+  }
+  /**
+   * Ingest data to repository using default settings.
+   *
+   * @param pInputDir input directory or file to transfer to repository.
+   * @param pNote note for digital object.
+   * @param pMetadata4Ingest instance for additional operations during ingest.
+   * @see IMetadata4Ingest
+   * @return command status.
+   */
+  public static CommandStatus ingestData(File pInputDir, String pNote, IMetadata4Ingest pMetadata4Ingest) {
     GenericIngestClient gic = new GenericIngestClient();
+    gic.registerMetadata4Ingest(pMetadata4Ingest);
     DataManagerPropertiesImpl properties;
     CommandStatus commandStatus;
     try {
@@ -114,7 +127,22 @@ public class GenericIngestClient extends AbstractGenericRestClient {
    * @return command status.
    */
   public static CommandStatus ingestData(DataManagerPropertiesImpl pProperties, File pInputDir, String pNote) {
+    return ingestData(pProperties, pInputDir, pNote, null);
+  }
+
+  /**
+   * Ingest data to repository using default settings.
+   *
+   * @param pProperties Properties to connect to KIT Data Manager.
+   * @param pInputDir input directory or file to transfer to repository.
+   * @param pNote note for digital object.
+   * @param pMetadata4Ingest instance for additional operations during ingest.
+   * @return command status.
+   */
+  public static CommandStatus ingestData(DataManagerPropertiesImpl pProperties, 
+          File pInputDir, String pNote, IMetadata4Ingest pMetadata4Ingest) {
     GenericIngestClient gic = new GenericIngestClient();
+    gic.registerMetadata4Ingest(pMetadata4Ingest);
     CommandStatus commandStatus;
     try {
       EnumSet<CommandLineFlags> flags = EnumSet.noneOf(CommandLineFlags.class);
@@ -154,21 +182,25 @@ public class GenericIngestClient extends AbstractGenericRestClient {
     inputDir = pInputDir;
     note = pNote;
     int exitValue = 0;
- 
+
     // Test for valid arguments.
     checkArguments();
     // Workflow for ingest: 
     // 1. initialize REST
     // 2. Create new digital object
-    // 2. Register new digital object
-    // 3. Prepare ingest
-    // 4. Wait for ingest status to continue.
-    // 5. Get WebDAV-URL
-    // 6. Transfer data via ADALAPI? to staging URL.
-    // 7. Register transfer to be satisfied.
+    // 3. Register new digital object
+    // 4. PreIngest 
+    // 5. Prepare ingest
+    // 6. Wait for ingest status to continue.
+    // 7. Get WebDAV-URL
+    // 8. Transfer data via ADALAPI? to staging URL.
+    // 9. Register transfer to be satisfied.
     // Steps 2-7 are now done by the generic client.
     // Read settings
-      try {
+    if (metadata4Ingest == null) {
+      metadata4Ingest = this;
+    }
+    try {
       if (pProperties != null) {
         // <editor-fold defaultstate="collapsed" desc="Initialize REST">
         SimpleRESTContext context = new SimpleRESTContext(pProperties.getAccessKey(), pProperties.getAccessSecret());
@@ -177,10 +209,18 @@ public class GenericIngestClient extends AbstractGenericRestClient {
         UserGroupRestClient ugrc = new UserGroupRestClient(pProperties.getRestUrl() + REST_USER_GROUP_PATH, context);
         UserDataWrapper user = ugrc.getUserById(-1); // Get actual user
         DigitalObject digitalObj = createDigitalObject(user.getEntities().get(0));
+
+        // Maybe some adaptions from properitary client.
+        digitalObj = metadata4Ingest.modifyMetadata(digitalObj);
+
         Long investigationId = Long.parseLong(pProperties.getInvestigation());
         DigitalObjectWrapper registeredDigitalObject = bmdrc.addDigitalObjectToInvestigation(investigationId, digitalObj, pProperties.getUserGroup());
         digitalObj = registeredDigitalObject.getEntities().get(0);
         LOGGER.info("digitalObj.getInvestigation" + digitalObj.getInvestigation());
+
+        // Mabe some additional stuff from properitary client.
+        metadata4Ingest.preTransfer(digitalObj.getDigitalObjectIdentifier());
+
         returnStatus = null;
         KIT_DM_REST_CLIENT.initialize(context, pProperties.getRestUrl());
         LOGGER.debug("User group1: " + pProperties.getUserGroup());
@@ -244,5 +284,36 @@ public class GenericIngestClient extends AbstractGenericRestClient {
     digitalObject.setNote(note);
     return digitalObject;
   }
+
+// <editor-fold defaultstate="collapsed" desc="PreIngest">
+  /**
+   * Instance implementing the pre ingest. Default: this.
+   */
+  private IMetadata4Ingest metadata4Ingest = null;
+
+  /**
+   * Register a pre index operation if necessary.
+   * If parameter is null the default operations implemented
+   * in this class will be executed.
+   *
+   * @param pMetadata4Ingest Instance holding pre ingest method.
+   */
+  public void registerMetadata4Ingest(IMetadata4Ingest pMetadata4Ingest) {
+      metadata4Ingest = pMetadata4Ingest;
+  }
+
+  @Override
+  public void preTransfer(String pDigitalObjectId) {
+    // nothing to do during generic ingest.
+    LOGGER.debug("Nothing to do during pre ingest!");
+  }
+
+  @Override
+  public DigitalObject modifyMetadata(DigitalObject pDigitalObject) {
+    // nothing to do during generic ingest.
+    LOGGER.debug("Nothing to do. Digital object is already filled!");
+    return pDigitalObject;
+  }
+// </editor-fold>
 
 }
