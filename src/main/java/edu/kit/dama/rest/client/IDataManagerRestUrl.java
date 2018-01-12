@@ -17,13 +17,15 @@ package edu.kit.dama.rest.client;
 
 /**
  * Interface holding the urls for the different services.
+ *
  * @author hartmann-v
  */
 public interface IDataManagerRestUrl {
-	/**
-	 * Base path for all REST services.
-	 */
-	String REST_BASE_PATH = "/rest/";
+
+  /**
+   * Base path for all REST services.
+   */
+  String REST_BASE_PATH = "/rest/";
   /**
    * Path for base metadata rest services.
    */
@@ -40,5 +42,13 @@ public interface IDataManagerRestUrl {
    * Path for user/group rest services.
    */
   String REST_USER_GROUP_PATH = REST_BASE_PATH + "usergroup/";
-  
+  /**
+   * Path for search rest services.
+   */
+  String REST_SEARCH_PATH = REST_BASE_PATH + "search/";
+  /**
+   * Path for search rest services.
+   */
+  String REST_MASI_PATH = REST_BASE_PATH + "masi/";
+
 }

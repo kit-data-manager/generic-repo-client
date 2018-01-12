@@ -1,4 +1,4 @@
- /*
+/*
  * Copyright 2015 Karlsruhe Institute of Technology.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,44 +15,55 @@
  */
 package edu.kit.dama.rest.client.ingest;
 
+import edu.kit.dama.client.exception.BaseMetadataException;
 import edu.kit.dama.mdm.base.DigitalObject;
+import java.io.File;
 
 /**
  * Interface for additional operations to be done during ingest before
  * <ol>
- *   <li> the metadata of digital object will be registered at the repository </li>
- *   <li> the data of digital object will be transferred to 
- * the repository</li>
+ * <li> the metadata of digital object will be registered at the repository
+ * </li>
+ * <li> the data of digital object will be transferred to the repository</li>
  * </ol>
  * This interface implements the 'inversion of control' pattern.
+ *
  * @author hartmann-v
  */
 public interface IMetadata4Ingest {
+
   /**
-   * Possibility to modify metadata of digital object which is used for registering dataset 
-   * at repository (KIT Datamanager).
-   * The digital object is partly filled with valid information but may
-   * be adapted on client side to the specific needs of the client.
-   * Most important values may be:
+   * Possibility to modify metadata of digital object which is used for
+   * registering dataset at repository (KIT Datamanager). The digital object is
+   * partly filled with valid information but may be adapted on client side to
+   * the specific needs of the client. Most important values may be:
    * <ul>
-   *   <li>Label</li>
-   *   <li>Note</li>
-   *   <li>Start date</li>
-   *   <li>End date</li>
+   * <li>Label</li>
+   * <li>Note</li>
+   * <li>Start date</li>
+   * <li>End date</li>
    * </ul>
    *
+   * @param pInputDirectory Directory of the data to ingest.
    * @param pDigitalObject Prefilled digital object.
    *
    * @return Modified Digital Object.
+   * @throws BaseMetadataException Error during registration. Ingest will be
+   * skipped.
    */
-  DigitalObject modifyMetadata(DigitalObject pDigitalObject);
+  DigitalObject modifyMetadata(File pInputDirectory, DigitalObject pDigitalObject) throws BaseMetadataException;
 
   /**
-   * This method will be called after the metadata is registered but before
-   * the data is already transfered to the repository..
-   * Therefore the digital object ID is already known. 
-   * You may manage the digitalObjectId on your side.
-   * @param pDigitalObjectId DigitalObjectId of the digital object which will be ingested.
+   * This method will be called after the metadata is registered but before the
+   * data is already transfered to the repository.. Therefore the digital object
+   * ID is already known. You may manage the digitalObjectId on your side.
+   *
+   * @param pInputDirectory Directory of the data to ingest.
+   * @param pDigitalObjectId DigitalObjectId of the digital object which will be
+   * ingested.
+   *
+   * @throws BaseMetadataException Error during registration. Ingest will be
+   * skipped.
    */
-  void preTransfer(String pDigitalObjectId);
+  void preTransfer(File pInputDirectory, String pDigitalObjectId) throws BaseMetadataException;
 }

@@ -15,10 +15,6 @@
  */
 package edu.kit.dama.cmdline.generic;
 
-import com.beust.jcommander.JCommander;
-import com.beust.jcommander.ParameterException;
-import edu.kit.jcommander.generic.status.CommandStatus;
-import edu.kit.jcommander.generic.parameter.CommandLineParameters;
 import edu.kit.dama.cmdline.generic.parameter.InitParameters;
 import edu.kit.dama.rest.mdm.base.client.InvestigationBuilder;
 import edu.kit.dama.rest.mdm.base.client.MetadataSchemaBuilder;
@@ -28,10 +24,7 @@ import edu.kit.dama.rest.mdm.base.client.TaskBuilder;
 import edu.kit.dama.rest.mdm.base.client.UpdateInvestigation;
 import edu.kit.dama.rest.mdm.base.client.UpdateOrganizationUnit;
 import edu.kit.dama.rest.mdm.base.client.UpdateStudy;
-import java.util.ArrayList;
-import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.io.File;
 
 /**
  * Main class holding all commands available for this project. This class is the
@@ -61,14 +54,18 @@ import org.slf4j.LoggerFactory;
  * @see UpdateOrganizationUnit
  * @author hartmann-v
  */
-public class SetupKitDataManager {
+public class SetupKitDataManager extends BasicExecuter {
 
   /**
-   * List holding all commands available by jCommander.
+   * Program parser and scheduler.
+   *
+   * @param args command line arguments.
    */
-  static final List<CommandLineParameters> commands = new ArrayList<>();
+  public static void main(String[] args) {
+    programName = "bin" + File.separator + "setupRepo";
 
-  static {
+    // <editor-fold defaultstate="collapsed" desc="Initialize commands">
+    commands.clear();
     commands.add(new InitParameters());
     commands.add(new StudyBuilder());
     commands.add(new InvestigationBuilder());
@@ -78,83 +75,8 @@ public class SetupKitDataManager {
     commands.add(new UpdateStudy());
     commands.add(new UpdateInvestigation());
     commands.add(new UpdateOrganizationUnit());
-  }
+    // </editor-fold>
 
-  /**
-   * The logger
-   */
-  private static final Logger LOGGER = LoggerFactory.getLogger(SetupKitDataManager.class);
-
-  /**
-   * Program parser and scheduler.
-   *
-   * @param args command line arguments.
-   */
-  public static void main(String[] args) {
-    int returnValue = 0;
-    JCommander jCommander = registerCommands();
-    jCommander.setProgramName("setupKITDataManager");
-
-    if (args.length == 0) {
-      jCommander.usage();
-    } else {
-      try {
-        jCommander.parse(args);
-
-        String command = jCommander.getParsedCommand();
-        CommandLineParameters clp = (CommandLineParameters) jCommander.getCommands().get(command).getObjects().get(0);
-
-        if (clp.isHelp()) {
-          printUsage(jCommander);
-        } else {
-          CommandStatus status = clp.executeCommand();
-          returnValue = status.getStatusCode();
-          System.out.println(status.getStatusMessage());
-          if (!status.getStatus().isSuccess()) {
-            Exception exception = status.getException();
-            if (exception != null) {
-              String message = exception.getMessage();
-              if (message != null) {
-                System.out.println(message);
-              }
-            }
-          }
-
-        }
-      } catch (ParameterException pe) {
-        System.err.println("Error parsing parameters!\nERROR -> " + pe.getMessage());
-        printUsage(jCommander);
-      }
-    }
-    System.exit(returnValue);
-  }
-
-  /**
-   * Register all commands.
-   *
-   * @return Instance holding all commands.
-   */
-  private static JCommander registerCommands() {
-    JCommander jCommander = new JCommander();
-    for (CommandLineParameters clp : commands) {
-      jCommander.addCommand(clp.getCommandName(), clp);
-    }
-
-    return jCommander;
-  }
-
-  /**
-   * Print usage on STDOUT.
-   *
-   * @param jCommander instance holding parameters and descriptions.
-   */
-  private static void printUsage(JCommander jCommander) {
-    String command = jCommander.getParsedCommand();
-    if (command != null) {
-      jCommander.usage(command);
-    } else {
-      jCommander.usage();
-    }
-
+    executeCommand(args);
   }
 }

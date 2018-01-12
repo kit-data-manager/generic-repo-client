@@ -39,6 +39,7 @@ import edu.kit.dama.staging.entities.download.DOWNLOAD_STATUS;
 import edu.kit.dama.staging.entities.download.DownloadInformation;
 import edu.kit.dama.staging.entities.ingest.INGEST_STATUS;
 import edu.kit.dama.staging.entities.ingest.IngestInformation;
+import org.apache.commons.lang.time.DateUtils;
 
 /**
  * This is the generic client which will perform various operations such as 1.
@@ -55,6 +56,14 @@ public final class KIT_DM_REST_CLIENT {
    * Logger for debug messages.
    */
   static final Logger LOGGER = LoggerFactory.getLogger(KIT_DM_REST_CLIENT.class);
+  /**
+   * Number of trials before skip upload.
+   */
+  static final int NO_OF_TRIALS = 3;
+  /**
+   * Wait time in seconds before retry failed transfer.
+   */
+  static final int RETRY_DELAY_IN_SECONDS = 10;
   /**
    * Instance accessing REST services on a higher level.
    */
@@ -147,7 +156,7 @@ public final class KIT_DM_REST_CLIENT {
 
     LOGGER.debug("Generating list of available data for group: " + group);
 
-    List<IngestInformation> listEntries = clientHelper.getIngestInformationIDs(Integer.MAX_VALUE, INGEST_STATUS.INGEST_FINISHED.getId());
+    List<IngestInformation> listEntries = clientHelper.getIngestInformationIDs(100, INGEST_STATUS.INGEST_FINISHED.getId());
     CommandStatus status = new CommandStatus(Status.SUCCESSFUL);
 
     // Get all IngestID
@@ -211,6 +220,8 @@ public final class KIT_DM_REST_CLIENT {
    * from.
    * @param groupId The group the digital object belongs to.
    * @return CommandStatus or OperationStatus
+   * @throws FileNotFoundException will be thrown if the dataSource is not a
+   * valid File or Directory
    */
   public static CommandStatus performDataIngest(String digitalObjectID, String accessMethod, File dataSource, String groupId) throws FileNotFoundException {
 
@@ -226,7 +237,24 @@ public final class KIT_DM_REST_CLIENT {
     IngestInformation ingestInformation = clientHelper.getSpecifiedIngestInformation(createdIngestEntity.getId());
 
     if (ingestInformation.getStatus() == INGEST_STATUS.PRE_INGEST_SCHEDULED.getId()) {
-      status = clientHelper.performIngestADALAPI(dataSource, ingestInformation);
+      int index = 0;
+      while (index < NO_OF_TRIALS) {
+        status = clientHelper.performIngestADALAPI(dataSource, ingestInformation);
+        if (status.getStatus().isSuccess()) {
+          break;
+        }
+        index++;
+        LOGGER.warn("Try #{}: Ingest failed for digital object identified by: '{}' from data source at path: '{}'",
+                index,
+                digitalObjectID,
+                dataSource.getAbsolutePath());
+
+        //wait retry delay
+        try {
+          Thread.sleep(RETRY_DELAY_IN_SECONDS * DateUtils.MILLIS_PER_SECOND);
+        } catch (InterruptedException ie) {
+        }
+      }
     }
     return status;
   }
@@ -334,7 +362,7 @@ public final class KIT_DM_REST_CLIENT {
 
     CommandStatus commandStatus = new CommandStatus(Status.FAILED);
     LOGGER.debug("Creating download entity in database for digital data: " + digitalObjectID);
-    DownloadInformation createdDownload = clientHelper.createDownloadEntity(digitalObjectID, accessMethod);
+    DownloadInformation createdDownload = clientHelper.createDownloadEntity(digitalObjectID, accessMethod, groupId);
 
     if (createdDownload == null) {
       LOGGER.error("ERROR Unable to create download entity for digital data: " + digitalObjectID);
@@ -403,7 +431,7 @@ public final class KIT_DM_REST_CLIENT {
 
     CommandStatus commandStatus = new CommandStatus(Status.FAILED);
     LOGGER.debug("Creating download entity in database for digital data: " + digitalObjectID);
-    DownloadInformation createdDownload = clientHelper.createDownloadEntity(digitalObjectID, accessMethod);
+    DownloadInformation createdDownload = clientHelper.createDownloadEntity(digitalObjectID, accessMethod, groupId);
 
     if (createdDownload == null) {
       LOGGER.error("ERROR Unable to create download entity for digital data: " + digitalObjectID);

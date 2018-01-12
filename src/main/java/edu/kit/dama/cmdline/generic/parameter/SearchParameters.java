@@ -20,6 +20,8 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import edu.kit.jcommander.generic.status.CommandStatus;
 import edu.kit.dama.rest.client.access.GenericAccessClient;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Class holding the commandline parameters. This class contains the parameters
@@ -27,34 +29,37 @@ import edu.kit.dama.rest.client.access.GenericAccessClient;
  *
  * @author hartmann-v
  */
-@Parameters(commandNames = "list", commandDescription = "List all digital objects linked to predefined user/group/investigation.")
-public class ListParameters extends CommandLineParameters {
+@Parameters(commandNames = "search", commandDescription = "Search for digital objects linked to predefined user/group/investigation.")
+public class SearchParameters extends CommandLineParameters {
 
   /**
-   * Print the output in a human readable format enriched with additional
-   * information.
+   * Which types should be used for search. (multiple types are allowed)
    */
-  @Parameter(names = {"-r", "--humanReadable"}, description = "List in human readable format.")
-  public boolean humanReadable;
+  @Parameter(names = {"-y", "--type"}, description = "Which type(s) should be used for search.(not supported yet!)", required = false)
+  public List<String> type = Arrays.asList("_all");
 
   /**
-   * Print only the failed ingests.
+   * Which index should be used for search. (multiple indices are allowed)
    */
-  @Parameter(names = {"-f", "--failedIngest"}, description = "List only failed ingests.")
-  public boolean failedIngests;
-
+  @Parameter(names = {"-i", "--index"}, description = "Which indices should be used for search.(not supported yet!)", required = false)
+  public List<String> index = Arrays.asList("_all");
   /**
-   * Parameter for output messages.
+   * For which terms should be searched.
    */
-  @Parameter(names = {"-v", "--verbose"}, description = "Show also predefined settings.", required = false)
-  public boolean verbose = false;
+  @Parameter(names = {"-t", "--term"}, description = "Search term(s).")
+  public List<String> term;
+  /**
+   * Which fields should be used for search. (multiple fields are allowed) *Not*
+   * supported yet!
+   */
+  @Parameter(names = {"-f", "--field"}, description = "Fields used for search. (not supported yet!)")
+  public List<String> field;
 
   /**
    * Default constructor.
    */
-  public ListParameters() {
-    super("list");
-    this.humanReadable = false;
+  public SearchParameters() {
+    super("search");
   }
 
   @Override

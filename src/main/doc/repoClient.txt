@@ -1,19 +1,16 @@
-Generic Repo Client
--------------------
+== Generic Repo Client
 
 GenericRepoClient offers a basic commandline interface to communicate 
 with a digital repository provided by KIT Data Manager.
 
-Requirements
-^^^^^^^^^^^^
+=== Requirements
 NOTE: For managing digital objects the connections to the repository and to webDAV
 have to be initialized in beforehand. Therefore the command **bin/setupRepo init -a**
 has to be executed at least once.
 To test the settings use the command **bin/setupRepo init -a -d** (For more details
 see <<init>>)
 
-Introduction
-~~~~~~~~~~~~
+=== Introduction
 The commandline interface is accessible via the command **bin/repoClient**.
 The command itself is divided in 3 subcommands tied to the life cycle of the
 data:
@@ -24,20 +21,17 @@ data:
 
 Each subcommand has specific parameters to configure/parameterize the commands.
 
-Commands
-~~~~~~~~
+=== Commands
 
-Ingest
-^^^^^^
+==== Ingest
 The **ingest** command uploads local data to the predefined repository. The
 settings have to be initialized in beforehand. (see <<init>>)
 
-Usage
-+++++
+===== Description
+Ingest data from input directory to repository. It supports multiple input directories at
+once. Each input directory will be ingested independently as a digital object. 
 
-Ingest data to KIT Data Manager.
-
-**Usage: ingest [options]**
+**Usage:** _bin/repoClient_ **ingest [options]**
 
 .Options for ingest command
 [cols="1,1,5a,1a",frame="topbot",options="header"]
@@ -46,8 +40,8 @@ Ingest data to KIT Data Manager.
 
 |Short | Long | |
 
-| -i | --inputdir | The input directory. All files from this directory will be ingested to
-       repository. |
+| -i | --inputdir |  One or more input directories. All files from each directory will be
+       ingested to repository. |
 
 | -n | --note | Note added to the administrative metadata. | 
 
@@ -55,19 +49,18 @@ Ingest data to KIT Data Manager.
 
 |====================================================================
 
-**Example:** _repoClient ingest -i /path/to/data -n "Any note\nsplitted in two lines."_
+**Example 1:** _bin/repoClient ingest -i /path1/to/data /path2/to/data -n "Any note\nsplitted in two lines."_
 
-List
-^^^^
+**Example 2:** _bin/repoClient ingest -i /path1/to/data -i /path2/to/data -n "Any note\nsplitted in two lines."_
+
+==== List
 The **list** command lists all readable digital objects of the predefined repository. The
 settings have to be initialized in beforehand. (see <<init>>)
 
-Usage
-+++++
-
+===== Description
 List all 'DigitalObjectIdentifiers' of digital objects linked to predefined user/group/investigation.
 
-**Usage: list [options]**
+**Usage:** _bin/repoClient_ **list [options]**
 
 .Options for list command
 [cols="1,1,5a,1a",frame="topbot",options="header"]
@@ -75,6 +68,8 @@ List all 'DigitalObjectIdentifiers' of digital objects linked to predefined user
 2+|Options | Description | Default
 
 |Short | Long | |
+
+| -f | --failedIngest | The output lists only failed ingests. | false
 
 | -r | --humanReadable | The output will be listed in a human readable format enriched by some metadata. | false
 
@@ -84,20 +79,19 @@ List all 'DigitalObjectIdentifiers' of digital objects linked to predefined user
 
 |====================================================================
 
+**Example:** _bin/repoClient list -r_
 
-Download
-^^^^^^^^
+
+==== Download
 The **download** command downloads a digital object to the local file system. The
 settings have to be initialized in beforehand. (see <<init>>)
 
-Usage
-+++++
-
+===== Description
 Download digital object. 
 **Attention:** In interactive mode the application is blocked until
 a digital object is selected by keyboard.
 
-**Usage: access [options]**
+**Usage:** _bin/repoClient_ **access [options]**
 
 .Options for access command
 [cols="1,1,5a,1a",frame="topbot",options="header"]
@@ -118,5 +112,35 @@ a digital object is selected by keyboard.
 
 |====================================================================
 
-**Example:** _repoClient ingest -o /path/to/data -d 6b99f0f5-f822-433b-9f6c-e0ad492672f7_
+**Example:** _bin/repoClient access -o /path/to/data -d 6b99f0f5-f822-433b-9f6c-e0ad492672f7_
+
+==== Search
+The **search** command search for digital objects whose metadata
+contain the given terms. The settings have to be initialized in beforehand. (see <<init>>)
+
+===== Description
+Search in metadata of digital objects. 
+
+**Usage:** _bin/repoClient_ **search [options]**
+
+.Options for search command
+[cols="1,1,5a,1a",frame="topbot",options="header"]
+|====================================================================
+2+|Options | Description | Default
+
+|Short | Long | |
+
+| -f | --field | Fields used for search. (not supported yet!) |
+
+| -i | --index | Which index/indices should be used for search. (not supported yet!) | _all
+
+| -t | --term | Search term(s) (only 1 term actually supported!)|
+
+| -y | --type | Which type(s) should be used for search. (not supported yet!) | _all
+
+| -h | --help | Prints usage of command. | false
+
+|====================================================================
+
+**Example:** _bin/repoClient search -t firstTerm -t secondTerm_
 

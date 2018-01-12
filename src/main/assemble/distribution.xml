@@ -36,6 +36,11 @@
       <outputDirectory></outputDirectory>
       <filtered>true</filtered>
     </fileSet>
+    <fileSet>
+      <directory>src/main/plugins</directory>
+      <outputDirectory>plugins</outputDirectory>
+      <filtered>false</filtered>
+    </fileSet>
     <!-- copy files without filtering. -->
     <fileSet>
       <directory>target/bin</directory>
@@ -52,7 +57,13 @@
       <outputDirectory>doc</outputDirectory>
       <excludes>
         <exclude>*.txt</exclude>
+        <exclude>images/*</exclude>
       </excludes>
+      <filtered>true</filtered>
+    </fileSet>
+    <fileSet>
+      <directory>target/doc/images</directory>
+      <outputDirectory>doc/images</outputDirectory>
       <filtered>false</filtered>
     </fileSet>
     <fileSet>

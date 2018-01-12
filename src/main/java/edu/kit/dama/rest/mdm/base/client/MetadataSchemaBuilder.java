@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Commandline parameters for the metadata schema.
- * 
+ *
  * @author hartmann-v
  */
 @Parameters(commandNames = "createschema", commandDescription = "Create a metadata schema.")
@@ -36,23 +36,28 @@ public class MetadataSchemaBuilder extends SetupCommandLineParameters {
    */
   private static final Logger LOGGER = LoggerFactory.getLogger(MetadataSchemaBuilder.class);
   /**
-   * Topic of the investigation.
+   * URL to metadata schema.
    */
-  @Parameter(names = {"-u", "--url"}, description = "'Metadata schema URL' of the metadata schema.", required = false)
-  String metadataSchemaUrl = "http://example.org/schema/2015-01";
+  @Parameter(names = {"-x", "--xsd"}, description = "'Metadata schema URL' of the metadata schema.", required = false)
+  String metadataSchemaUrl = "http://example.org/schema/2015-01/schema.xsd";
   /**
-   * Note for the investigation.
+   * Schema identifier has to be unique
    */
-  @Parameter(names = {"-d", "--identifier"}, description = "'Metadata schema identifier' of the metadata schema. ", required = false)
+  @Parameter(names = {"-d", "--identifier"}, description = "'Metadata schema identifier' of the metadata schema.", required = false)
   String identifier = "example";
+  /**
+   * Namespace of the schema.
+   */
+  @Parameter(names = {"-u", "--url"}, description = "Namespace of the schema.", required = false)
+  String namespace = "http://example.org/schema/2015-01";
 
-
- /**
+  /**
    * Default constructor.
    */
   public MetadataSchemaBuilder() {
     super("createschema");
   }
+
   /**
    * Set the url.
    *
@@ -76,6 +81,17 @@ public class MetadataSchemaBuilder extends SetupCommandLineParameters {
   }
 
   /**
+   * Set the namespace.
+   *
+   * @param pNamespace namespace
+   * @return instance of builder
+   */
+  public MetadataSchemaBuilder namespace(String pNamespace) {
+    namespace = pNamespace;
+    return this;
+  }
+
+  /**
    * Build investigation instance using set attributes.
    *
    * @return Instance of MetaDataSchema.
@@ -84,6 +100,7 @@ public class MetadataSchemaBuilder extends SetupCommandLineParameters {
     MetaDataSchema mds = new MetaDataSchema();
     mds.setMetaDataSchemaUrl(metadataSchemaUrl);
     mds.setSchemaIdentifier(identifier);
+    mds.setNamespace(namespace);
     return mds;
 
   }

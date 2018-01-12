@@ -15,6 +15,7 @@
  */
 package edu.kit.dama.rest.client.ingest;
 
+import edu.kit.dama.client.exception.BaseMetadataException;
 import edu.kit.dama.rest.client.AbstractGenericRestClient;
 import edu.kit.dama.rest.client.DataManagerPropertiesImpl;
 import edu.kit.dama.rest.client.DataManagerPropertiesHelper;
@@ -29,11 +30,19 @@ import edu.kit.dama.rest.admin.types.UserDataWrapper;
 import edu.kit.dama.rest.basemetadata.client.impl.BaseMetaDataRestClient;
 import edu.kit.dama.rest.basemetadata.types.DigitalObjectWrapper;
 import edu.kit.dama.rest.client.generic.KIT_DM_REST_CLIENT;
+import edu.kit.jcommander.generic.status.Status;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.ServiceLoader;
+import java.util.stream.Collectors;
+import org.fzk.grid.util.JWhich;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,15 +92,17 @@ public class GenericIngestClient extends AbstractGenericRestClient implements IM
   }
 
   /**
-   * Ingest data to repository using default settings.
+   * Ingest data to repository using default settings. Each directory contains
+   * one digital object.
    *
-   * @param pInputDir input directory or file to transfer to repository.
+   * @param pInputDir input list of directories to transfer to repository.
    * @param pNote note for digital object.
    * @return command status.
    */
-  public static CommandStatus ingestData(File pInputDir, String pNote) {
+  public static CommandStatus ingestData(List<File> pInputDir, String pNote) {
     return ingestData(pInputDir, pNote, null);
   }
+
   /**
    * Ingest data to repository using default settings.
    *
@@ -101,9 +112,9 @@ public class GenericIngestClient extends AbstractGenericRestClient implements IM
    * @see IMetadata4Ingest
    * @return command status.
    */
-  public static CommandStatus ingestData(File pInputDir, String pNote, IMetadata4Ingest pMetadata4Ingest) {
+  public static CommandStatus ingestData(List<File> pInputDir, String pNote, IMetadata4Ingest pMetadata4Ingest) {
     GenericIngestClient gic = new GenericIngestClient();
-    gic.registerMetadata4Ingest(pMetadata4Ingest);
+    registerPlugin(gic, pMetadata4Ingest);
     DataManagerPropertiesImpl properties;
     CommandStatus commandStatus;
     try {
@@ -116,6 +127,62 @@ public class GenericIngestClient extends AbstractGenericRestClient implements IM
     }
 
     return commandStatus;
+  }
+
+  /**
+   * Ingest data to repository using default settings.
+   *
+   * @param pInputDir input directory or file to transfer to repository.
+   * @param pNote note for digital object.
+   * @return command status.
+   */
+  public static CommandStatus ingestData(File pInputDir, String pNote) {
+    return ingestData(pInputDir, pNote, null);
+  }
+
+  /**
+   * Ingest data to repository using default settings.
+   *
+   * @param pInputDir input directory or file to transfer to repository.
+   * @param pNote note for digital object.
+   * @param pMetadata4Ingest instance for additional operations during ingest.
+   * @see IMetadata4Ingest
+   * @return command status.
+   */
+  public static CommandStatus ingestData(File pInputDir, String pNote, IMetadata4Ingest pMetadata4Ingest) {
+    return ingestData(Arrays.asList(pInputDir), pNote, pMetadata4Ingest);
+  }
+
+  /**
+   * Register plugin for additional tasks. The plugins are found dynamically
+   * (via service loader) if they are placed in the classpath. If a plugin is
+   * already provided the service loader will not be called.
+   *
+   * @param pGic Generic Ingest Client for ingesting digital object(s).
+   * @param pPlugin Selected plugin if there is already one.
+   */
+  protected static void registerPlugin(GenericIngestClient pGic, IMetadata4Ingest pPlugin) {
+    if (pPlugin != null) {
+      pGic.registerMetadata4Ingest(pPlugin);
+    } else {
+      IMetadata4Ingest selectedPlugin = null;
+
+      for (IMetadata4Ingest plugin : ServiceLoader.load(IMetadata4Ingest.class)) {
+        if (selectedPlugin != null) {
+          LOGGER.warn("More than one plugin found! First plugin will be used!");
+          String plugin1 = selectedPlugin.getClass().getName();
+          String plugin2 = plugin.getClass().getName();
+          LOGGER.warn("Selected plugin: '{}'\n"
+                  + "Skipped plugin: '{}'", JWhich.whichJar(plugin1),
+                  JWhich.whichJar(plugin2));
+        } else {
+          selectedPlugin = plugin;
+          LOGGER.debug("Found plugin '{}' for metadata ingest!", selectedPlugin.getClass().toString());
+        }
+      }
+      pGic.registerMetadata4Ingest(selectedPlugin);
+    }
+
   }
 
   /**
@@ -139,7 +206,7 @@ public class GenericIngestClient extends AbstractGenericRestClient implements IM
    * @param pMetadata4Ingest instance for additional operations during ingest.
    * @return command status.
    */
-  public static CommandStatus ingestData(DataManagerPropertiesImpl pProperties, 
+  public static CommandStatus ingestData(DataManagerPropertiesImpl pProperties,
           File pInputDir, String pNote, IMetadata4Ingest pMetadata4Ingest) {
     GenericIngestClient gic = new GenericIngestClient();
     gic.registerMetadata4Ingest(pMetadata4Ingest);
@@ -152,7 +219,7 @@ public class GenericIngestClient extends AbstractGenericRestClient implements IM
       flags.add(CommandLineFlags.ACCESSPOINT);
       flags.add(CommandLineFlags.REST_AUTHENTICATION);
       DataManagerPropertiesHelper.testSettings(pProperties, flags);
-      commandStatus = gic.executeCommand(pProperties, pInputDir, pNote);
+      commandStatus = gic.executeCommand(pProperties, Arrays.asList(pInputDir), pNote);
     } catch (IllegalArgumentException ex) {
       LOGGER.error(null, ex);
       commandStatus = new CommandStatus(ex);
@@ -173,16 +240,100 @@ public class GenericIngestClient extends AbstractGenericRestClient implements IM
    * }
    * </pre>
    *
-   * @param pProperties
-   * @param pInputDir
-   * @param pNote
-   * @return
+   * @param pProperties Properties to connect to KIT Data Manager.
+   * @param pInputDir input directories to transfer to repository. Files are not
+   * allowed.
+   * @param pNote note for digital object.
+   * @return command status.
    */
-  private CommandStatus executeCommand(DataManagerPropertiesImpl pProperties, File pInputDir, String pNote) {
-    inputDir = pInputDir;
-    note = pNote;
+  private CommandStatus executeCommand(DataManagerPropertiesImpl pProperties, List<File> pInputDir, String pNote) {
     int exitValue = 0;
+    returnStatus = new CommandStatus(Status.SUCCESSFUL);
+    if (pProperties != null) {
+      SimpleRESTContext context = new SimpleRESTContext(pProperties.getAccessKey(), pProperties.getAccessSecret());
+      UserGroupRestClient ugrc = new UserGroupRestClient(pProperties.getRestUrl() + REST_USER_GROUP_PATH, context);
+      UserData user = ugrc.getUserById(-1).getEntities().get(0); // Get actual user
+      KIT_DM_REST_CLIENT.initialize(context, pProperties.getRestUrl());
+      Map<Status, List<CommandStatus>> collect = pInputDir.parallelStream().map((inputDirectory) -> ingestDirectory(pProperties, inputDirectory, pNote, user)).collect(Collectors.groupingBy(CommandStatus::getStatus));
 
+      // <editor-fold defaultstate="collapsed" desc="Summarize ingests and set status">
+      List<CommandStatus> succeededIngests = collect.get(Status.SUCCESSFUL);
+      int noOfSucceededIngests = 0;
+      int noOfFailedIngests = 0;
+      if (succeededIngests != null) {
+        noOfSucceededIngests = succeededIngests.size();
+      }
+      List<CommandStatus> failedIngests = collect.get(Status.FAILED);
+      if (failedIngests != null) {
+        noOfFailedIngests = failedIngests.size();
+        if (noOfFailedIngests > 0) {
+          returnStatus = failedIngests.get(0);
+          String message = String.format("%d of %d ingest(s) failed!", noOfFailedIngests, noOfFailedIngests + noOfSucceededIngests);
+          returnStatus.setException(new Exception(message));
+        }
+      }
+      LOGGER.info("{} ingests were made!", noOfSucceededIngests);
+      // </editor-fold>
+    }
+    exitValue = returnStatus.getStatusCode();
+    LOGGER.debug("Exit value: " + exitValue);
+
+    return getReturnStatus();
+  }
+
+  /**
+   * Ingest single directory.
+   *
+   * @param pProperties Properties to connect to KIT Data Manager.
+   * @param pInputDir input directory to transfer to repository. Files are not
+   * allowed.
+   * @param pNote note for digital object.
+   * @param pUser User who ingests the directory.
+   * @return command status.
+   */
+  private CommandStatus ingestDirectory(DataManagerPropertiesImpl pProperties, File pInputDir, String pNote, UserData pUser) {
+    CommandStatus commandStatus;
+    try {
+      DigitalObject digitalObject = registerDigitalObject(pProperties, pInputDir, pNote, pUser);
+      // <editor-fold defaultstate="collapsed" desc="Initialize REST">
+      // Read ids
+      LOGGER.info("Start ingest for directory '{}'", pInputDir.getAbsolutePath());
+//        returnStatus = KIT_DM_REST_CLIENT.performDataIngestTransferClient(digitalObj.getDigitalObjectId().getStringRepresentation(), pProperties.getAccessPoint(), inputDir, pProperties.getUserGroup());
+      commandStatus = KIT_DM_REST_CLIENT.performDataIngest(digitalObject.getDigitalObjectId().getStringRepresentation(), pProperties.getAccessPoint(), pInputDir, pProperties.getUserGroup());
+      LOGGER.info("Ingest for directory '{}' finished! Status: {} - {}", pInputDir.getAbsolutePath(), commandStatus.getStatusCode(), commandStatus.getStatusMessage());
+    } catch (BaseMetadataException | FileNotFoundException e) {
+      LOGGER.error("Error during ingest!", e);
+      commandStatus = new CommandStatus(e);
+      LOGGER.error("Ingest for directory '{}' finished! Status: {} - {}", pInputDir.getAbsolutePath(), commandStatus.getStatusCode(), commandStatus.getStatusMessage());
+      LOGGER.info("Exception: {}", commandStatus.getException().toString());
+
+    }
+    return commandStatus;
+  }
+
+  /**
+   * Register one digital object in KIT Data Manager. Attention: Settings for
+   * KIT Data Manager should be tested in beforehand!
+   * <br/> Example:
+   * <pre>
+   * {@code
+   *  DataManagerPropertiesImpl properties = testDataManagerSettings();
+   * // if webDAV is needed also add the following line.
+   *  DataManagerPropertiesHelper.initializeWebDav(properties);
+   * }
+   * </pre>
+   *
+   * @param pProperties Properties to connect to KIT Data Manager.
+   * @param inputDirectory input directory to transfer to repository. Files are
+   * not allowed.
+   * @param pNote note for digital object.
+   * @param pUser user executing this ingest
+   * @return Map with digital objects and their related directories.
+   */
+  private DigitalObject registerDigitalObject(DataManagerPropertiesImpl pProperties, File inputDirectory, String pNote, UserData pUser) throws BaseMetadataException {
+    note = pNote;
+    inputDir = inputDirectory;
+    DigitalObject digitalObject = null;
     // Test for valid arguments.
     checkArguments();
     // Workflow for ingest: 
@@ -200,40 +351,29 @@ public class GenericIngestClient extends AbstractGenericRestClient implements IM
     if (metadata4Ingest == null) {
       metadata4Ingest = this;
     }
-    try {
-      if (pProperties != null) {
-        // <editor-fold defaultstate="collapsed" desc="Initialize REST">
-        SimpleRESTContext context = new SimpleRESTContext(pProperties.getAccessKey(), pProperties.getAccessSecret());
-        // Read ids
-        BaseMetaDataRestClient bmdrc = new BaseMetaDataRestClient(pProperties.getRestUrl() + REST_BASE_META_DATA_PATH, context);
-        UserGroupRestClient ugrc = new UserGroupRestClient(pProperties.getRestUrl() + REST_USER_GROUP_PATH, context);
-        UserDataWrapper user = ugrc.getUserById(-1); // Get actual user
-        DigitalObject digitalObj = createDigitalObject(user.getEntities().get(0));
-
+    if (pProperties != null) {
+      SimpleRESTContext context = new SimpleRESTContext(pProperties.getAccessKey(), pProperties.getAccessSecret());
+      // Read ids
+      BaseMetaDataRestClient bmdrc = new BaseMetaDataRestClient(pProperties.getRestUrl() + REST_BASE_META_DATA_PATH, context);
+      synchronized (this) {
+        // <editor-fold defaultstate="collapsed" desc="Prepare digital object for ingest.">
+        digitalObject = createDigitalObject(pUser);
         // Maybe some adaptions from properitary client.
-        digitalObj = metadata4Ingest.modifyMetadata(digitalObj);
+        digitalObject = metadata4Ingest.modifyMetadata(inputDirectory, digitalObject);
+        // </editor-fold>
 
+        // <editor-fold defaultstate="collapsed" desc="Register digital object at repository.">
         Long investigationId = Long.parseLong(pProperties.getInvestigation());
-        DigitalObjectWrapper registeredDigitalObject = bmdrc.addDigitalObjectToInvestigation(investigationId, digitalObj, pProperties.getUserGroup());
-        digitalObj = registeredDigitalObject.getEntities().get(0);
-        LOGGER.info("digitalObj.getInvestigation" + digitalObj.getInvestigation());
+        DigitalObjectWrapper registeredDigitalObject = bmdrc.addDigitalObjectToInvestigation(investigationId, digitalObject, pProperties.getUserGroup());
+        digitalObject = registeredDigitalObject.getEntities().get(0);
+        LOGGER.trace("Digital Object registered at repository: {}", digitalObject);
+        // </editor-fold>
 
         // Mabe some additional stuff from properitary client.
-        metadata4Ingest.preTransfer(digitalObj.getDigitalObjectIdentifier());
-
-        returnStatus = null;
-        KIT_DM_REST_CLIENT.initialize(context, pProperties.getRestUrl());
-        LOGGER.debug("User group1: " + pProperties.getUserGroup());
-        returnStatus = KIT_DM_REST_CLIENT.performDataIngestTransferClient(digitalObj.getDigitalObjectId().getStringRepresentation(), pProperties.getAccessPoint(), inputDir, pProperties.getUserGroup());
+        metadata4Ingest.preTransfer(inputDirectory, digitalObject.getDigitalObjectIdentifier());
       }
-    } catch (FileNotFoundException | IllegalArgumentException ex) {
-      LOGGER.error(null, ex);
-      returnStatus = new CommandStatus(ex);
     }
-    LOGGER.info("ReturnValue (CommandStatus): " + getReturnStatus());
-    LOGGER.info("Exit value: " + exitValue);
-
-    return getReturnStatus();
+    return digitalObject;
   }
 
   @Override
@@ -252,7 +392,7 @@ public class GenericIngestClient extends AbstractGenericRestClient implements IM
    * unique.)
    * @param pUploader User which will be registered as uploader and
    * experimenter.
-   * @return
+   * @return digital object with some prefilled values.
    */
   private DigitalObject createDigitalObject(UserData pUploader) {
     DigitalObject digitalObject = new DigitalObject();
@@ -292,24 +432,30 @@ public class GenericIngestClient extends AbstractGenericRestClient implements IM
   private IMetadata4Ingest metadata4Ingest = null;
 
   /**
-   * Register a pre index operation if necessary.
-   * If parameter is null the default operations implemented
-   * in this class will be executed.
+   * Register a pre index operation if necessary. If parameter is null the
+   * default operations implemented in this class will be executed.
    *
    * @param pMetadata4Ingest Instance holding pre ingest method.
    */
   public void registerMetadata4Ingest(IMetadata4Ingest pMetadata4Ingest) {
-      metadata4Ingest = pMetadata4Ingest;
+    if (metadata4Ingest != null) {
+      LOGGER.debug("Remove metadata ingest plugin: '{}'", metadata4Ingest.getClass().toString());
+    }
+    if (pMetadata4Ingest != null) {
+      LOGGER.debug("Register metadata ingest plugin: '{}'", pMetadata4Ingest.getClass().toString());
+    }
+
+    metadata4Ingest = pMetadata4Ingest;
   }
 
   @Override
-  public void preTransfer(String pDigitalObjectId) {
+  public void preTransfer(File pInputDir, String pDigitalObjectId) throws BaseMetadataException {
     // nothing to do during generic ingest.
-    LOGGER.debug("Nothing to do during pre ingest!");
+    LOGGER.debug("Nothing to do during pre ingest for digital object id '{}'!", pDigitalObjectId);
   }
 
   @Override
-  public DigitalObject modifyMetadata(DigitalObject pDigitalObject) {
+  public DigitalObject modifyMetadata(File pInputDir, DigitalObject pDigitalObject) throws BaseMetadataException {
     // nothing to do during generic ingest.
     LOGGER.debug("Nothing to do. Digital object is already filled!");
     return pDigitalObject;

@@ -17,38 +17,50 @@
 -->
 <configuration>
 
+  <!-- Console appender for Drag and Drop Client. 
+  Displays only important infos. -->
+  <appender name="INGEST" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{HH:mm:ss} - %msg%n</pattern>
+    </encoder>
+  </appender>
+  
+  <!-- Console appender showing logs with detailed information. -->
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
       <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
     </encoder>
   </appender>
 
+  <!-- File appender for the log file. 
+  Create a separate file for each day. -->
   <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>log/datamanager.log</file>
+    <file>log/genericrepoclient.log</file>
     <encoder>
-      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+      <pattern>%d{YYYY-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
     </encoder>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-      <FileNamePattern>log/datamanager_%d{yyyy-MM-dd}.log</FileNamePattern>
+      <FileNamePattern>log/genericrepoclient_%d{yyyy-MM-dd}.log</FileNamePattern>
       <!-- keep 30 days' worth of history -->
       <maxHistory>30</maxHistory>
     </rollingPolicy>
   </appender>
   
+  <!-- For logging start stop and status of transfers only.
+  Don't edit! -->
+  <logger name="edu.kit.dama.rest.client.ingest.GenericIngestClient" level="info">      
+    <appender-ref ref="INGEST"/>
+  </logger>
   
-  <appender name="LILITH" class="ch.qos.logback.classic.net.SocketAppender">
-    <RemoteHost>localhost</RemoteHost>
-    <ReconnectionDelay>170</ReconnectionDelay>
-    <IncludeCallerData>true</IncludeCallerData>
-  </appender>
-  
-  <!-- For logging purposes only. 
-       Possible values: all, trace, debug, info, warn, error, off-->
+  <!-- For debugging purposes only. 
+  Possible values: all, trace, debug, info, warn, error, off-->
+  <!-- For more detailed logging remove this line and edit log level.     
   <logger name="edu.kit" level="off">
    <appender-ref ref="STDOUT" />
   </logger>
+  <   This line has to be removed too. -->
   
-  <root level="ERROR">
+  <root level="WARN">
     <!--appender-ref ref="LILITH" /-->
     <!--appender-ref ref="STDOUT" /-->
     <appender-ref ref="FILE" />

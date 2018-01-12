@@ -123,11 +123,12 @@ public final class PrintUtil {
       }
     }
   }
-    /**
-     * Print instance to stdout.
-     *
-     * @param pParticipant Participant to print.
-     */
+
+  /**
+   * Print instance to stdout.
+   *
+   * @param pParticipant Participant to print.
+   */
   public final static void printParticipant(Participant pParticipant) {
     output.println("Participant:\n--------------");
     if (pParticipant.getUser() == null) {
@@ -138,11 +139,11 @@ public final class PrintUtil {
     }
   }
 
-    /**
-     * Print instance to stdout.
-     *
-     * @param pRelation Participant to print.
-     */
+  /**
+   * Print instance to stdout.
+   *
+   * @param pRelation Participant to print.
+   */
   public final static void printRelation(Relation pRelation) {
     output.println("Relation:\n--------------");
     if (pRelation.getOrganizationUnit() == null) {
@@ -196,7 +197,7 @@ public final class PrintUtil {
       if (pMetadataSchema.getMetaDataSchemaUrl() == null) {
         output.println("ID: #" + pMetadataSchema.getId());
       } else {
-        output.format("%s - %s\n", pMetadataSchema.getSchemaIdentifier(), pMetadataSchema.getMetaDataSchemaUrl());
+        output.format("%s (%s) - %s\n", pMetadataSchema.getSchemaIdentifier(), pMetadataSchema.getNamespace(), pMetadataSchema.getMetaDataSchemaUrl());
       }
     }
   }

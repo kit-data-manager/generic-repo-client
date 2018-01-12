@@ -21,6 +21,7 @@ import edu.kit.jcommander.generic.status.CommandStatus;
 import edu.kit.jcommander.generic.status.Status;
 import edu.kit.dama.cmdline.generic.parameter.AccessParameters;
 import edu.kit.dama.cmdline.generic.parameter.ListParameters;
+import edu.kit.dama.cmdline.generic.parameter.SearchParameters;
 import edu.kit.dama.mdm.base.DigitalObject;
 import edu.kit.dama.mdm.dataorganization.service.exception.DataOrganizationException;
 import edu.kit.dama.rest.SimpleRESTContext;
@@ -28,14 +29,20 @@ import edu.kit.dama.rest.basemetadata.client.impl.BaseMetaDataRestClient;
 import edu.kit.dama.rest.basemetadata.types.DigitalObjectWrapper;
 import edu.kit.dama.rest.client.AbstractGenericRestClient;
 import static edu.kit.dama.rest.client.IDataManagerRestUrl.REST_BASE_META_DATA_PATH;
+import edu.kit.dama.rest.client.access.impl.SearchRestClient;
 import edu.kit.dama.rest.client.generic.KIT_DM_REST_CLIENT;
 import edu.kit.dama.rest.dataorganization.client.impl.DataOrganizationRestClient;
+import edu.kit.dama.rest.staging.client.impl.StagingRestClient;
+import edu.kit.dama.rest.staging.types.IngestInformationWrapper;
+import edu.kit.dama.staging.entities.ingest.INGEST_STATUS;
 import edu.kit.dama.util.StdIoUtils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import javax.xml.ws.WebServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,7 +91,8 @@ public class GenericAccessClient extends AbstractGenericRestClient {
 
     boolean humanReadable = lp.humanReadable;
     boolean verbose = lp.verbose;
-    return gac.listDigitalObjects(humanReadable, verbose);
+    boolean listFailedIngestsOnly = lp.failedIngests;
+    return gac.listDigitalObjects(listFailedIngestsOnly, humanReadable, verbose);
   }
 
   /**
@@ -95,6 +103,16 @@ public class GenericAccessClient extends AbstractGenericRestClient {
    */
   public static CommandStatus executeCommand(AccessParameters ap) {
     return new GenericAccessClient().accessData(ap.outputDir, ap.digitalObjectId, ap.interactive);
+  }
+
+  /**
+   * Execute command using jcommander. Parameters already parsed by JCommander.
+   *
+   * @param sp parsed arguments.
+   * @return Status of the command.
+   */
+  public static CommandStatus executeCommand(SearchParameters sp) {
+    return new GenericAccessClient().searchData(sp.index, sp.type, sp.term);
   }
 
   /**
@@ -128,7 +146,7 @@ public class GenericAccessClient extends AbstractGenericRestClient {
 
     // Test for valid arguments.
     checkArguments();
-        // Workflow for access: 
+    // Workflow for access: 
     // 1. initialize REST
     // 2. Select digital object
     // 3. Prepare download
@@ -147,7 +165,8 @@ public class GenericAccessClient extends AbstractGenericRestClient {
         digitalObjectId = selectDigitalObject(properties, context);
         LOGGER.info("digitalObjId = " + digitalObjectId);
         KIT_DM_REST_CLIENT.initialize(context, properties.getRestUrl());
-        returnStatus = KIT_DM_REST_CLIENT.performDataDownloadDataTransferClient(properties.getAccessPoint(), digitalObjectId, outputDir, properties.getUserGroup());
+//        returnStatus = KIT_DM_REST_CLIENT.performDataDownloadDataTransferClient(properties.getAccessPoint(), digitalObjectId, outputDir, properties.getUserGroup());
+        returnStatus = KIT_DM_REST_CLIENT.performDataDownload(properties.getAccessPoint(), digitalObjectId, outputDir, properties.getUserGroup());
       }
     } catch (FileNotFoundException | DataOrganizationException | IllegalArgumentException ex) {
       LOGGER.error(null, ex);
@@ -161,11 +180,12 @@ public class GenericAccessClient extends AbstractGenericRestClient {
   /**
    * List digital objects accessible by defined user/group/investigation.
    *
+   * @param pListFailedIngests Show only failed ingests.
    * @param pHumanReadable Human readable or only listing.
    * @param pVerbose Show also actual settings.
    * @return Status of the command.
    */
-  private CommandStatus listDigitalObjects(boolean pHumanReadable, boolean pVerbose) {
+  private CommandStatus listDigitalObjects(boolean pListFailedIngests, boolean pHumanReadable, boolean pVerbose) {
     try {
       DataManagerPropertiesImpl properties = testDataManagerSettings();
 
@@ -177,8 +197,42 @@ public class GenericAccessClient extends AbstractGenericRestClient {
         // <editor-fold defaultstate="collapsed" desc="Initialize REST">
         SimpleRESTContext context = new SimpleRESTContext(properties.getAccessKey(), properties.getAccessSecret());
         BaseMetaDataRestClient bmdrc = new BaseMetaDataRestClient(properties.getRestUrl() + REST_BASE_META_DATA_PATH, context);
+        StagingRestClient stagingClient = new StagingRestClient(properties.getRestUrl() + REST_STAGING_PATH, context);
+
         String header = String.format("List of digital objects (group: '%s'):", properties.getUserGroup());
-        printDigitalObjects(bmdrc, header, pHumanReadable, properties.getUserGroup());
+        printDigitalObjects(bmdrc, stagingClient, header, pListFailedIngests, pHumanReadable, properties.getUserGroup());
+        returnStatus = new CommandStatus(Status.SUCCESSFUL);
+
+      }
+    } catch (IllegalArgumentException iae) {
+      LOGGER.error(null, iae);
+      returnStatus = new CommandStatus(iae);
+    }
+    return getReturnStatus();
+  }
+
+  /**
+   * Download data from repository.
+   *
+   * @param type Which types should be used for search.
+   * @param index 'Which indices should be used for search.
+   * @param term Terms to search for in given types and indices.
+   * @return status of the command.
+   */
+  private CommandStatus searchData(List<String> type, List<String> index, List<String> term) {
+    try {
+      DataManagerPropertiesImpl properties = testDataManagerSettings();
+
+      if (properties != null) {
+        // <editor-fold defaultstate="collapsed" desc="Initialize REST">
+        SimpleRESTContext context = new SimpleRESTContext(properties.getAccessKey(), properties.getAccessSecret());
+        SearchRestClient src = new SearchRestClient(properties.getRestUrl(), context);
+        String searchResultList;
+        searchResultList = src.getSearchResultList(properties.getUserGroup(), null, null, term.toArray(new String[1]), 20, context);
+        String header = String.format("Search for '%s':", term.get(0));
+        PrintStream output = System.out;
+        output.println(header);
+        output.println(searchResultList);
         returnStatus = new CommandStatus(Status.SUCCESSFUL);
 
       }
@@ -211,8 +265,9 @@ public class GenericAccessClient extends AbstractGenericRestClient {
   private String selectDigitalObject(DataManagerPropertiesImpl pProperties, SimpleRESTContext pContext) throws DataOrganizationException {
     String digitalObjectIdentifier = null;
     BaseMetaDataRestClient bmdrc = new BaseMetaDataRestClient(pProperties.getRestUrl() + REST_BASE_META_DATA_PATH, pContext);
+    StagingRestClient stagingClient = new StagingRestClient(pProperties.getRestUrl() + REST_STAGING_PATH, pContext);
     if (interactive || digitalObjectId == null) {
-      String[] allDigitalObjIds = printDigitalObjects(bmdrc, "Please choose a digital object via given index:", true, pProperties.getUserGroup());
+      String[] allDigitalObjIds = printDigitalObjects(bmdrc, stagingClient, "Please choose a digital object via given index:", false, true, pProperties.getUserGroup());
       int index;
       index = StdIoUtils.readIntFromStdInput(allDigitalObjIds.length, 1) - 1;
       digitalObjectIdentifier = allDigitalObjIds[index];
@@ -240,49 +295,66 @@ public class GenericAccessClient extends AbstractGenericRestClient {
    * Write all digital objects of given group to a string array.
    *
    * @param pBmdrc REST client for base metadata.
+   * @param pSClient REST client for staging information.
    * @param pHeader Head line of the output.
+   * @param pListFailedIngestsOnly List only failed ingests.
    * @param pHumanReadable human readable format (add note and date of digital
    * object)
    * @param pGroupId show only digital objects of the given group (null ->
    * USERS)
    * @return array holding all digital objects of given group.
    */
-  private String[] printDigitalObjects(BaseMetaDataRestClient pBmdrc, String pHeader, boolean pHumanReadable, String pGroupId) {
+  private String[] printDigitalObjects(BaseMetaDataRestClient pBmdrc,
+          StagingRestClient pSClient, String pHeader,
+          boolean pListFailedIngestsOnly, boolean pHumanReadable, String pGroupId) {
     final int ALL_INVESTIGATIONS = 0;
+    final int ANY_STATUS = -1;
     // Get all digital Objects.
     DigitalObject digitalObject;
     // Determine start and end date according to the last modified dates.
     SimpleDateFormat sdf = new SimpleDateFormat("YYYY_MM_dd'T'HH_mm");
     PrintStream output = System.out;
-    DigitalObjectWrapper allDigitalObjects = pBmdrc.getAllDigitalObjects(ALL_INVESTIGATIONS, 0, Integer.MAX_VALUE, pGroupId);
+    final int MAX_SIZE = 100;
+    int startIndex = 0;
+    List<String> allDigitalObjIds = new ArrayList();
+    List<String> allDigitalObjIdDescriptions = new ArrayList();
+    do {
+      DigitalObjectWrapper allDigitalObjects = pBmdrc.getAllDigitalObjects(ALL_INVESTIGATIONS, startIndex, MAX_SIZE, pGroupId);
 
-    String[] allDigitalObjIds = new String[allDigitalObjects.getCount()];
-    String[] allDigitalObjIdDescriptions = new String[allDigitalObjects.getCount()];
-    int index = 0;
-    for (DigitalObject item : allDigitalObjects.getEntities()) {
-      digitalObject = pBmdrc.getDigitalObjectById(item.getBaseId(), pGroupId).getEntities().get(0);
-      allDigitalObjIds[index] = digitalObject.getDigitalObjectIdentifier();
-      Date startDate = digitalObject.getStartDate();
-      if (startDate == null) {
-        startDate = new Date(0);
+      for (DigitalObject item : allDigitalObjects.getEntities()) {
+        digitalObject = pBmdrc.getDigitalObjectById(item.getBaseId(), pGroupId).getEntities().get(0);
+        IngestInformationWrapper ingestInfo = pSClient.getAllIngestInformation(null, pGroupId, digitalObject.getDigitalObjectIdentifier(), ANY_STATUS, 0, Integer.MAX_VALUE, null);
+        INGEST_STATUS statusEnum = INGEST_STATUS.UNKNOWN;
+        if (ingestInfo.getCount() > 0) {
+          statusEnum = ingestInfo.getEntities().get(0).getStatusEnum();
+        }
+        if ((!pListFailedIngestsOnly) || (statusEnum.isErrorState())) {
+          allDigitalObjIds.add(digitalObject.getDigitalObjectIdentifier());
+          Date startDate = digitalObject.getStartDate();
+          if (startDate == null) {
+            startDate = new Date(0);
+          }
+          StringBuilder sb = new StringBuilder();
+          if (pHumanReadable) {
+            sb.append(String.format("date: %s, note: %s",
+                    sdf.format(startDate),
+                    digitalObject.getNote()));
+          }
+          sb.append(String.format(", state: %s", statusEnum));
+          allDigitalObjIdDescriptions.add(sb.toString());
+        }
       }
-      allDigitalObjIdDescriptions[index] = String.format("date: %s, note: %s",
-              sdf.format(startDate),
-              digitalObject.getNote());
-      index++;
-    }
-    index = 1;
+      startIndex += MAX_SIZE;
+    } while (allDigitalObjIds.size() == startIndex);
+    int index = 1;
     output.println(pHeader);
-    for (int pVIndex = 0; pVIndex < allDigitalObjIds.length; pVIndex++) {
-      StringBuilder adaptedFormatString = new StringBuilder("%3d: %s");
-      if (pHumanReadable) {
-        adaptedFormatString.append(" %s");
-      }
+    for (int pVIndex = 0; pVIndex < allDigitalObjIds.size(); pVIndex++) {
+      StringBuilder adaptedFormatString = new StringBuilder("%3d: %s %s");
       output.println(String.format(adaptedFormatString.toString(), index++,
-              allDigitalObjIds[pVIndex],
-              allDigitalObjIdDescriptions[pVIndex]));
+              allDigitalObjIds.get(pVIndex),
+              allDigitalObjIdDescriptions.get(pVIndex)));
     }
-    return allDigitalObjIds;
+    return allDigitalObjIds.toArray(new String[allDigitalObjIds.size()]);
   }
 
 }

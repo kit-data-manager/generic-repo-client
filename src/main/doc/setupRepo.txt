@@ -1,6 +1,4 @@
-Setup Administrative Metadata
------------------------------
-
+== Setup Administrative Metadata
 GenericRepoClient offers a basic commandline interface to manage the
 administrative metadata supported by KIT Data Manager.
 
@@ -11,44 +9,29 @@ The administrative metadata elements are mostly used internally by KIT Data
 Manager and its services. These elements have a fixed schema and are typically 
 stored in a relational database. One important part is the Base Metadata defining 
 a guaranteed core set of metadata elements that are expected to be available for 
-each and every Digital Object managed by KIT Data Manager. Parts of the Base Metadata 
+each and every digital object managed by KIT Data Manager. Parts of the base metadata 
 are adopted from the Core Scientific Metadata Model (CSMD) 2.0, other parts of 
 this model were skipped to reduce complexity and to allow more flexibility. 
 
-Each Digital Object is part of an investigation. All Digital Objects of an investigation
+Each digital object is part of an investigation. All digital objects of an investigation
 should share the same Metadata Schema(s). Multiple investigations may be linked
 to one study working on a certain topic of research. 
 
-Introduction
-~~~~~~~~~~~~
-The commandline interface is accessible via the command **bin/setupRepo**.
-The command itself is divided in 
-
-
- * 1 subcommand to setup connection to repository and webDAV
- * 8 subcommands to create/edit the administrative metadata supported by the KIT Data Manager.
-
-Each subcommand has specific parameters to configure/parameterize the commands.
-
-Requirements
-^^^^^^^^^^^^
+=== Requirements
 NOTE: For managing the administrative metadata the connection to the repository has to
 be initialized in beforehand. Therefore the command **bin/setupRepo init -b -r**
 has to be executed at least once.
 
-Commands
-~~~~~~~~
+=== Commands
 [[init]]
-Initialization
-^^^^^^^^^^^^^^
+==== Initialization
 For accessing the repository several settings have to be adapted to the
 specific environment. The **init** command has to be executed at least once 
 before you access the repository. If you want to change the settings it may be 
 called as often as you need. The settings 'RepoSettings.properties' are stored 
 in a directory called '.repoClient' in the home directory of the user.
 
-Requirements
-++++++++++++
+===== Requirements
 Before initializing the transfer settings an accesspoint has to be defined. This
 can be done via the web GUI of the KIT Data Manager which will be available via
 a browser (http://hostnameOfRepo:PortofRepo/KITDM).
@@ -60,10 +43,8 @@ The **init** command distinguishs between 4 categories.
 . Context
 . Transfer
 
-Description of the settings
-+++++++++++++++++++++++++++
-Base Settings
-+++++++++++++
+===== Description of the settings
+====== Base Settings
 .Base Settings
 [cols="2>,10<,7<",frame="topbot",options="header"]
 |====================================================================
@@ -73,8 +54,7 @@ Base Settings
 
 |====================================================================
 
-REST
-++++
+====== REST
 .REST
 [cols="2>,10<,7<",frame="topbot",options="header"]
 |====================================================================
@@ -88,8 +68,7 @@ REST
 
 |====================================================================
 
-Context
-+++++++
+====== Context
 .Context
 [cols="2>,10<,7<",frame="topbot",options="header"]
 |====================================================================
@@ -104,8 +83,7 @@ If no study / investigation is defined yet, the user will be asked to create
 a default study / investigation. Before writing these administrative metadata
 the writing has to be confirmed!
 
-Transfer
-++++++++
+====== Transfer
 .Transfer
 [cols="2>,10<,7<",frame="topbot",options="header"]
 |====================================================================
@@ -119,12 +97,11 @@ Transfer
 
 |====================================================================
 
-Usage
-+++++
+===== Description
 
 Initialize access and ingest settings for KIT Data Manager. 
 
-**Usage: init [options]**
+**Usage:** _bin/setupRepo_ **init [options]**
 
 .Options for init command
 [cols="1,1,5a,1a",frame="topbot",options="header"]
@@ -152,22 +129,21 @@ Initialize access and ingest settings for KIT Data Manager.
 
 |====================================================================
 
+**Example:** _bin/setupRepo init -a_
+
 If no category is defined the default settings will be chosen covering URL, accessKey,
 accessSecret, userId, group and investigation.
 
 [[createstudy]]
-Create Study
-^^^^^^^^^^^^
-
+==== Create Study
 Creates a new study. 
 In interactive mode all subsequent metadata will be queried too.
 
-Usage
-+++++
+===== Description
 
 Create a new study for KIT Data Manager. 
 
-**Usage: createstudy [options]**
+**Usage:** _bin/setupRepo_ **createstudy [options]**
 
 .Options for createstudy command
 [cols="1,1,5a,1a",frame="topbot",options="header"]
@@ -195,20 +171,17 @@ Create a new study for KIT Data Manager.
 | -h | --help | Prints usage of command. | false
 
 |====================================================================
+**Example:** _bin/repoClient createstudy -i_
 
 [[createinvestigation]]
-Create Investigation
-^^^^^^^^^^^^^^^^^^^^
-
+==== Create Investigation
 Creates a new investigation.
 In interactive mode all subsequent metadata will be queried too.
 
-Usage
-+++++
-
+===== Description
 Create a new investigation for KIT Data Manager. 
 
-**Usage: createinvestigation [options]**
+**Usage:** _bin/setupRepo_ **createinvestigation [options]**
 
 .Options for createinvestigation command
 [cols="1,1,5a,1a",frame="topbot",options="header"]
@@ -237,20 +210,17 @@ Create a new investigation for KIT Data Manager.
 | -h | --help | Prints usage of command. | false
 
 |====================================================================
+**Example:** _bin/repoClient createinvestigation -i_
  
 
 [[createschema]]
-Create Metadata Schema
-^^^^^^^^^^^^^^^^^^^^^^
-
+==== Create Metadata Schema
 Creates a new metadata schema.
 
-Usage
-+++++
-
+===== Description
 Create a new metadata schema for KIT Data Manager. 
 
-**Usage: createschema [options]**
+**Usage:** _bin/setupRepo_ **createschema [options]**
 
 .Options for createschema command
 [cols="1,1,5a,1a",frame="topbot",options="header"]
@@ -261,28 +231,28 @@ Create a new metadata schema for KIT Data Manager.
 
 | -d | --identifier| 'Metadata schema identifier' of the metadata schema. | example
 
-| -i | --interactive | Query all values interactively via commandline. | false
+| -u | --url | Namespace of the schema. | http://example.org/schema/2015-01
 
-| -u | --url | 'Metadata schema URL' of the metadata schema. | http://example.org/schema/2015-01
+| -x | --xsd | 'Metadata schema URL' of the metadata schema. | http://example.org/schema/2015-01/schema.xsd
+
+| -i | --interactive | Query all values interactively via commandline. | false
 
 | -v | --verbose | Turn on verbose reporting. | false
 
 | -h | --help | Prints usage of command. | false
 
 |====================================================================
+**Example:** _bin/repoClient createschema -d bmd -u "http://datamanager.kit.edu/dama/basemetadata" -x "http
+://datamanager.kit.edu/dama/basemetadata/2015-08/basemetadata.xsd"_
 
 [[createorganizationunit]]
-Create Organization Unit
-^^^^^^^^^^^^^^^^^^^^^^^^
-
+==== Create Organization Unit
 Creates a new organization unit.
 
-Usage
-+++++
-
+===== Description
 Create a new organization unit for KIT Data Manager. 
 
-**Usage: createorganizationunit [options]**
+**Usage:** _bin/setupRepo_ **createorganizationunit [options]**
 
 .Options for createorganizationunit command
 [cols="1,1,5a,1a",frame="topbot",options="header"]
@@ -312,19 +282,16 @@ Create a new organization unit for KIT Data Manager.
 | -h | --help | Prints usage of command. | false
 
 |====================================================================
+**Example:** _bin/repoClient createorganizationunit -i_
 
 [[createtask]]
-Create Task
-^^^^^^^^^^^
-
+==== Create Task
 Creates a new task.
 
-Usage
-+++++
-
+===== Description
 Create a new task for KIT Data Manager. 
 
-**Usage: createtask [options]**
+**Usage:** _bin/setupRepo_ **createtask [options]**
 
 .Options for createtask command
 [cols="1,1,5a,1a",frame="topbot",options="header"]
@@ -342,20 +309,17 @@ Create a new task for KIT Data Manager.
 | -h | --help | Prints usage of command. | false
 
 |====================================================================
+**Example:** _bin/repoClient createtask -t Manager_
 
 [[updatestudy]]
-Update Study
-^^^^^^^^^^^^
-
+==== Update Study
 Update/edit an existing study.
 
-Usage
-+++++
-
+===== Description
 Update an existing study for KIT Data Manager. All values are queried interactively
 via commandline. If no study ID is given also this value will be queried.
 
-**Usage: updatestudy [options]**
+**Usage:** _bin/setupRepo_ **updatestudy [options]**
 
 .Options for updatestudy command
 [cols="1,1,5a,1a",frame="topbot",options="header"]
@@ -373,20 +337,17 @@ via commandline. If no study ID is given also this value will be queried.
 | -h | --help | Prints usage of command. | false
 
 |====================================================================
+**Example:** _bin/repoClient updatestudy -s 1_
 
 [[updateinvestigation]]
-Update Investigation
-^^^^^^^^^^^^^^^^^^^^
-
+==== Update Investigation
 Update/edit an existing investigation.
 
-Usage
-+++++
-
+===== Description
 Update an existing investigation for KIT Data Manager. All values are queried interactively
 via commandline. If no investigation ID is given also this value will be queried.
 
-**Usage: updateinvestigation [options]**
+**Usage:** _bin/setupRepo_ **updateinvestigation [options]**
 
 .Options for updateinvestigation command
 [cols="1,1,5a,1a",frame="topbot",options="header"]
@@ -404,20 +365,17 @@ via commandline. If no investigation ID is given also this value will be queried
 | -h | --help | Prints usage of command. | false
 
 |====================================================================
+**Example:** _bin/repoClient updateinvestigation -i_
  
 [[updateorganization]]
-Update Organization Unit
-^^^^^^^^^^^^^^^^^^^^^^^^
+==== Update Organization Unit
+Update/edit an existing organization unit.
 
-Update/edit an existing investigation.
-
-Usage
-+++++
-
-Update an existing investigation for KIT Data Manager. All values are queried interactively
+===== Description
+Update an existing organization unit for KIT Data Manager. All values are queried interactively
 via commandline. If no organization unit ID is given also this value will be queried.
 
-**Usage: updateorganization [options]**
+**Usage:** _bin/setupRepo_ **updateorganization [options]**
 
 .Options for updateorganization command
 [cols="1,1,5a,1a",frame="topbot",options="header"]
@@ -435,9 +393,9 @@ via commandline. If no organization unit ID is given also this value will be que
 | -h | --help | Prints usage of command. | false
 
 |====================================================================
+**Example:** _bin/repoClient updateorganization -i_
  
-Working with Multiple Environments
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=== Working with Multiple Environments
 If it is necessary to switch between at least two projects there is the possibility
 to store two or more settings in parallel instead of initializing it each time
 you want to switch. 
@@ -448,8 +406,7 @@ you want to switch.
 <4> Initialize each setup by calling '**bin/setupRepoProjectX init -a**' 
 <5> Use '**bin/repoClientProjectX ...'** for the according project
 
-Linux
-^^^^^
+==== Linux
 setupRepoProject1
 --------------------------------------
 #!/bin/sh
@@ -471,8 +428,7 @@ cd repoClientInstallationDirectory
 bin/repoClient "$@" 
 --------------------------------------
 
-Windows
-^^^^^^^
+==== Windows
 setupRepoProject1.bat
 --------------------------------------
 # Set environment variable

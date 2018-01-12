@@ -280,7 +280,7 @@ public class GenericSetupClient extends AbstractGenericRestClient {
    * @return Status of the command.
    */
   private CommandStatus createStudy(Study pStudy, boolean pInteractive) {
-    CommandStatus returnValue = new CommandStatus(Status.SUCCESSFUL);
+    CommandStatus returnValue = new CommandStatus(Status.FAILED);
     properties = testDataManagerSettings();
     if (pInteractive) {
       queryStudy(pStudy);
@@ -301,7 +301,7 @@ public class GenericSetupClient extends AbstractGenericRestClient {
    * @return Status of the command.
    */
   private CommandStatus createInvestigation(Investigation pInvestigation, boolean pInteractive) {
-    CommandStatus returnValue = new CommandStatus(Status.SUCCESSFUL);
+    CommandStatus returnValue = new CommandStatus(Status.FAILED);
     properties = testDataManagerSettings();
     if (pInteractive) {
       returnValue = queryInvestigation(pInvestigation, true);
@@ -329,7 +329,7 @@ public class GenericSetupClient extends AbstractGenericRestClient {
    * @return Status of the command.
    */
   private CommandStatus createMetadataSchema(MetaDataSchema pMetadataSchema, boolean pInteractive) {
-    CommandStatus returnValue = new CommandStatus(Status.SUCCESSFUL);
+    CommandStatus returnValue = new CommandStatus(Status.FAILED);
     properties = testDataManagerSettings();
     if (pInteractive) {
       returnValue = queryMetadataSchema(pMetadataSchema);
@@ -350,7 +350,7 @@ public class GenericSetupClient extends AbstractGenericRestClient {
    * @return Status of the command.
    */
   private CommandStatus createOrganizationUnit(OrganizationUnit pOrganizationUnit, boolean pInteractive) {
-    CommandStatus returnValue = new CommandStatus(Status.SUCCESSFUL);
+    CommandStatus returnValue = new CommandStatus(Status.FAILED);
     properties = testDataManagerSettings();
     if (pInteractive) {
       returnValue = queryOrganizationUnit(pOrganizationUnit, false);
@@ -371,7 +371,7 @@ public class GenericSetupClient extends AbstractGenericRestClient {
    * @return Status of the command.
    */
   private CommandStatus createTask(Task pTask, boolean pInteractive) {
-    CommandStatus returnValue = new CommandStatus(Status.SUCCESSFUL);
+    CommandStatus returnValue = new CommandStatus(Status.FAILED);
     properties = testDataManagerSettings();
     if (pInteractive) {
       returnValue = queryTask(pTask);
@@ -400,14 +400,14 @@ public class GenericSetupClient extends AbstractGenericRestClient {
     Long studyId = pStudyId;
     if (pInteractive || (pStudyId == null)) {
       study = selectStudy();
-      if (study == null) {
-        return new CommandStatus(Status.FAILED);
-      }
     } else {
       study = bmdrc.getStudyById(studyId, properties.getUserGroup()).getEntities().get(0);
-      if (study.getManager() != null) {
-        study.setManager(bmdrc.getUserDataById(study.getManager().getUserId(), properties.getUserGroup()).getEntities().get(0));
-      }
+    }
+    if (study == null) {
+      return new CommandStatus(Status.FAILED);
+    }
+    if (study.getManager() != null) {
+      study.setManager(bmdrc.getUserDataById(study.getManager().getUserId(), properties.getUserGroup()).getEntities().get(0));
     }
     returnValue = queryStudy(study);
 
@@ -434,12 +434,15 @@ public class GenericSetupClient extends AbstractGenericRestClient {
     Long investigationId = pInvestigationId;
     if (pInteractive || (pInvestigationId == null)) {
       investigation = selectInvestigation(0l);
-      investigationId = investigation.getInvestigationId();
     } else {
       investigation = bmdrc.getInvestigationById(investigationId, properties.getUserGroup()).getEntities().get(0);
     }
+    if (investigation == null) {
+      return new CommandStatus(Status.FAILED);
+    }
     returnValue = queryInvestigation(investigation, true);
 
+    investigationId = investigation.getInvestigationId();
     PrintUtil.printInvestigation(investigation, true);
     if (queryYesNoAnswer("Do you want to update the investigation?", NO)) {
       output.println("Update investigation: ");
@@ -476,16 +479,16 @@ public class GenericSetupClient extends AbstractGenericRestClient {
     Long organizationId = pOrganizationUnitId;
     if (pInteractive || (pOrganizationUnitId == null)) {
       organization = selectOrganizationUnit();
-      if (organization == null) {
-        return new CommandStatus(Status.FAILED);
-      }
-      organizationId = organization.getOrganizationUnitId();
     } else {
       organization = bmdrc.getOrganizationUnitById(organizationId, properties.getUserGroup()).getEntities().get(0);
       if (organization.getManager() != null) {
         organization.setManager(bmdrc.getUserDataById(organization.getManager().getUserId(), properties.getUserGroup()).getEntities().get(0));
       }
     }
+    if (organization == null) {
+      return new CommandStatus(Status.FAILED);
+    }
+    organizationId = organization.getOrganizationUnitId();
     returnValue = queryOrganizationUnit(organization, true);
 
     PrintUtil.printOrganizationUnit(organization);
@@ -606,13 +609,14 @@ public class GenericSetupClient extends AbstractGenericRestClient {
    * Query for a new metadata schema.
    *
    * @param pMetadataSchema Instance with preset values.
-   * @return
+   * @return Status of the command.
    */
   private CommandStatus queryMetadataSchema(MetaDataSchema pMetadataSchema) {
     CommandStatus returnValue = new CommandStatus(Status.SUCCESSFUL);
     output.println("Please input the new value for metadata schema");
     pMetadataSchema.setMetaDataSchemaUrl(queryStringWithDefaultValue("Metadata schema URL", pMetadataSchema.getMetaDataSchemaUrl()));
     pMetadataSchema.setSchemaIdentifier(queryStringWithDefaultValue("Metadata schema identifier", pMetadataSchema.getSchemaIdentifier()));
+    pMetadataSchema.setNamespace(queryStringWithDefaultValue("Namespace for schema", pMetadataSchema.getNamespace()));
 
     return returnValue;
   }
@@ -621,7 +625,7 @@ public class GenericSetupClient extends AbstractGenericRestClient {
    * Query for a new task.
    *
    * @param pTask Instance with preset values.
-   * @return
+   * @return Status of the command.
    */
   private CommandStatus queryTask(Task pTask) {
     CommandStatus returnValue = new CommandStatus(Status.SUCCESSFUL);
@@ -641,12 +645,12 @@ public class GenericSetupClient extends AbstractGenericRestClient {
    * @return Status of the command.
    */
   private CommandStatus addMetadataSchemaToInvestigation(Investigation pInvestigation) {
-    CommandStatus returnValue = new CommandStatus(Status.SUCCESSFUL);
+    CommandStatus returnValue = new CommandStatus(Status.FAILED);
     // lookup for all defined metadata schemas.
     List<Long> ids = new ArrayList<>();
     List<String> descriptions = new ArrayList<>();
     // add one item for new metadata schema
-    MetadataSchemaWrapper allMetadataSchemas = bmdrc.getAllMetadataSchemas(0, Integer.MAX_VALUE, properties.getUserGroup());
+    MetadataSchemaWrapper allMetadataSchemas = bmdrc.getAllMetadataSchemas(0, 100, properties.getUserGroup());
     for (MetaDataSchema item : allMetadataSchemas.getEntities()) {
       MetaDataSchema buffer = bmdrc.getMetadataSchemaById(item.getId(), properties.getUserGroup()).getEntities().get(0);
       ids.add(buffer.getId());
@@ -715,16 +719,14 @@ public class GenericSetupClient extends AbstractGenericRestClient {
    * @return command status
    */
   private CommandStatus addRelationToStudy(Study pStudy) {
-    CommandStatus returnValue = new CommandStatus(Status.SUCCESSFUL);
+    CommandStatus returnValue = new CommandStatus(Status.FAILED);
     OrganizationUnit organization = selectOrganizationUnit();
     if (organization != null) {
       Task task = selectTask();
       Relation relation = new Relation(organization, task);
       pStudy.addRelation(relation);
-    } else {
-      returnValue = new CommandStatus(Status.FAILED);
+      returnValue = new CommandStatus(Status.SUCCESSFUL);
     }
-
     return returnValue;
   }
   // </editor-fold>
@@ -733,7 +735,7 @@ public class GenericSetupClient extends AbstractGenericRestClient {
   /**
    * Select a study.
    *
-   * @return study (null if canceled)
+   * @return Study (null if canceled)
    */
   private Study selectStudy() {
     Study returnValue = null;
@@ -741,7 +743,7 @@ public class GenericSetupClient extends AbstractGenericRestClient {
     List<Long> ids = new ArrayList<>();
     List<String> descriptions = new ArrayList<>();
     // add one item for new metadata schema
-    StudyWrapper studies = bmdrc.getAllStudies(0, Integer.MAX_VALUE, properties.getUserGroup());
+    StudyWrapper studies = bmdrc.getAllStudies(0, 100, properties.getUserGroup());
     for (Study item : studies.getEntities()) {
       Study buffer = bmdrc.getStudyById(item.getStudyId(), properties.getUserGroup()).getEntities().get(0);
       ids.add(buffer.getStudyId());
@@ -772,7 +774,7 @@ public class GenericSetupClient extends AbstractGenericRestClient {
     List<Long> ids = new ArrayList<>();
     List<String> descriptions = new ArrayList<>();
     // add one item for new metadata schema
-    InvestigationWrapper investigations = bmdrc.getAllInvestigations(pStudyId, 0, Integer.MAX_VALUE, properties.getUserGroup());
+    InvestigationWrapper investigations = bmdrc.getAllInvestigations(pStudyId, 0, 100, properties.getUserGroup());
     for (Investigation item : investigations.getEntities()) {
       Investigation buffer = bmdrc.getInvestigationById(item.getInvestigationId(), properties.getUserGroup()).getEntities().get(0);
       ids.add(buffer.getInvestigationId());
@@ -804,7 +806,7 @@ public class GenericSetupClient extends AbstractGenericRestClient {
     List<Long> ids = new ArrayList<>();
     List<String> descriptions = new ArrayList<>();
     // add one item for new metadata schema
-    OrganizationUnitWrapper tasks = bmdrc.getAllOrganizationUnits(0, Integer.MAX_VALUE, properties.getUserGroup());
+    OrganizationUnitWrapper tasks = bmdrc.getAllOrganizationUnits(0, 100, properties.getUserGroup());
     for (OrganizationUnit item : tasks.getEntities()) {
       OrganizationUnit buffer = bmdrc.getOrganizationUnitById(item.getOrganizationUnitId(), properties.getUserGroup()).getEntities().get(0);
       ids.add(buffer.getOrganizationUnitId());
@@ -839,7 +841,7 @@ public class GenericSetupClient extends AbstractGenericRestClient {
     List<Long> ids = new ArrayList<>();
     List<String> descriptions = new ArrayList<>();
     // add one item for new metadata schema
-    TaskWrapper tasks = bmdrc.getAllTasks(0, Integer.MAX_VALUE, properties.getUserGroup());
+    TaskWrapper tasks = bmdrc.getAllTasks(0, 100, properties.getUserGroup());
     for (Task item : tasks.getEntities()) {
       Task buffer = bmdrc.getTaskById(item.getTaskId(), properties.getUserGroup()).getEntities().get(0);
       ids.add(buffer.getTaskId());
@@ -874,7 +876,7 @@ public class GenericSetupClient extends AbstractGenericRestClient {
     List<Long> ids = new ArrayList<>();
     List<String> descriptions = new ArrayList<>();
     // add one item for new metadata schema
-    UserDataWrapper allUserData = bmdrc.getAllUserData(0, Integer.MAX_VALUE, properties.getUserGroup());
+    UserDataWrapper allUserData = bmdrc.getAllUserData(0, 100, properties.getUserGroup());
     for (UserData item : allUserData.getEntities()) {
       UserData buffer = bmdrc.getUserDataById(item.getUserId(), properties.getUserGroup()).getEntities().get(0);
       ids.add(buffer.getUserId());
@@ -944,7 +946,7 @@ public class GenericSetupClient extends AbstractGenericRestClient {
    * @return Status of the command.
    */
   private CommandStatus writeInvestigation(Long pStudyId, Investigation pInvestigation) {
-    CommandStatus returnValue = new CommandStatus(Status.SUCCESSFUL);
+    CommandStatus returnValue = new CommandStatus(Status.FAILED);
     if (pInvestigation.getInvestigationId() == null) {
       // investigation is not known to the server yet.
       if (pStudyId == null) {
@@ -960,8 +962,11 @@ public class GenericSetupClient extends AbstractGenericRestClient {
           PrintUtil.printInvestigation(pInvestigation, false);
         }
         Investigation investigation = bmdrc.addInvestigationToStudy(pStudyId, pInvestigation, properties.getUserGroup()).getEntities().get(0);
-        pInvestigation.setInvestigationId(investigation.getInvestigationId());
-        output.println("Add investigation to study: " + returnValue.getStatus());
+        if (investigation != null) {
+          returnValue = new CommandStatus(Status.SUCCESSFUL);
+          pInvestigation.setInvestigationId(investigation.getInvestigationId());
+          output.println("Add investigation to study: " + returnValue.getStatus());
+        }
       } else {
         returnValue = new CommandStatus(Status.FAILED);
       }
@@ -991,7 +996,7 @@ public class GenericSetupClient extends AbstractGenericRestClient {
    * @return Status of the command.
    */
   private CommandStatus writeRelation(Long pStudyId, Relation pRelation) {
-    CommandStatus returnValue = new CommandStatus(Status.SUCCESSFUL);
+    CommandStatus returnValue = new CommandStatus(Status.FAILED);
     if (pRelation.getRelationId() == null) {
       // relation is not known to the server yet.
       if (pStudyId == null) {
@@ -1017,15 +1022,14 @@ public class GenericSetupClient extends AbstractGenericRestClient {
           if (verbose) {
             PrintUtil.printRelation(pRelation);
           }
-          // method return study wrapper which may already contain one or more relations!?
+          // method return Study wrapper which may already contain one or more relations!?
           StudyWrapper addRelationToStudy = bmdrc.addRelationToStudy(pStudyId, pRelation, properties.getUserGroup());
-          output.println("New no of Relations: " + addRelationToStudy.getEntities().get(0).getOrganizationUnits().size());
-          output.println("Add relation to study: finished");
-        } else {
-          returnValue = new CommandStatus(Status.FAILED);
+          if (addRelationToStudy != null) {
+            returnValue = new CommandStatus(Status.SUCCESSFUL);
+            output.println("New no of Relations: " + addRelationToStudy.getEntities().get(0).getOrganizationUnits().size());
+            output.println("Add relation to study: finished");
+          }
         }
-      } else {
-        returnValue = new CommandStatus(Status.FAILED);
       }
     }
     return returnValue;
@@ -1039,7 +1043,7 @@ public class GenericSetupClient extends AbstractGenericRestClient {
    * @return Status of the command.
    */
   private CommandStatus writeParticipants(Long pInvestigationId, Participant pParticipant) {
-    CommandStatus returnValue = new CommandStatus(Status.SUCCESSFUL);
+    CommandStatus returnValue = new CommandStatus(Status.FAILED);
     if (pParticipant.getParticipantId() == null) {
       // relation is not known to the server yet.
       if (pInvestigationId == null) {
@@ -1070,13 +1074,12 @@ public class GenericSetupClient extends AbstractGenericRestClient {
           }
           // method return investigation wrapper which may already contain one or more participants!?
           InvestigationWrapper addParticipantToInvestigation = bmdrc.addParticipantToInvestigation(pInvestigationId, pParticipant, properties.getUserGroup());
-          output.println("New no of participants: " + addParticipantToInvestigation.getEntities().get(0).getParticipants().size());
-          output.println("Add participant to investigation: " + returnValue.getStatus());
-        } else {
-          returnValue = new CommandStatus(Status.FAILED);
+          if (addParticipantToInvestigation != null) {
+            returnValue = new CommandStatus(Status.SUCCESSFUL);
+            output.println("New no of participants: " + addParticipantToInvestigation.getEntities().get(0).getParticipants().size());
+            output.println("Add participant to investigation: " + returnValue.getStatus());
+          }
         }
-      } else {
-        returnValue = new CommandStatus(Status.FAILED);
       }
     }
     return returnValue;
@@ -1089,15 +1092,18 @@ public class GenericSetupClient extends AbstractGenericRestClient {
    * @return Status of the command.
    */
   private CommandStatus writeOrganizationUnit(OrganizationUnit pOrganizationUnit) {
-    CommandStatus returnValue = new CommandStatus(Status.SUCCESSFUL);
+    CommandStatus returnValue = new CommandStatus(Status.FAILED);
     if (pOrganizationUnit.getOrganizationUnitId() == null) {
       output.println("Write organization unit: ");
       if (verbose) {
         PrintUtil.printOrganizationUnit(pOrganizationUnit);
       }
       OrganizationUnit oUnit = bmdrc.addOrganizationUnit(pOrganizationUnit, properties.getUserGroup()).getEntities().get(0);
-      pOrganizationUnit.setOrganizationUnitId(oUnit.getOrganizationUnitId());
-      output.println("Write organization unit: " + returnValue.getStatus());
+      if (oUnit != null) {
+        returnValue = new CommandStatus(Status.SUCCESSFUL);
+        pOrganizationUnit.setOrganizationUnitId(oUnit.getOrganizationUnitId());
+        output.println("Write organization unit: " + returnValue.getStatus());
+      }
     }
     return returnValue;
   }
@@ -1109,15 +1115,18 @@ public class GenericSetupClient extends AbstractGenericRestClient {
    * @return Status of the command.
    */
   private CommandStatus writeTask(Task pTask) {
-    CommandStatus returnValue = new CommandStatus(Status.SUCCESSFUL);
+    CommandStatus returnValue = new CommandStatus(Status.FAILED);
     if (pTask.getTaskId() == null) {
       output.println("Write task: ");
       if (verbose) {
         PrintUtil.printTask(pTask);
       }
       Task task = bmdrc.addTask(pTask, properties.getUserGroup()).getEntities().get(0);
-      pTask.setTaskId(task.getTaskId());
-      output.println("Write task: " + returnValue.getStatus());
+      if (task != null) {
+        returnValue = new CommandStatus(Status.SUCCESSFUL);
+        pTask.setTaskId(task.getTaskId());
+        output.println("Write task: " + returnValue.getStatus());
+      }
     }
     return returnValue;
   }
@@ -1130,24 +1139,30 @@ public class GenericSetupClient extends AbstractGenericRestClient {
    * @return Status of the command.
    */
   private CommandStatus writeMetadataSchema(Long pInvestigationId, MetaDataSchema pMetadataSchema) {
-    CommandStatus returnValue = new CommandStatus(Status.SUCCESSFUL);
+    CommandStatus returnValue = new CommandStatus(Status.FAILED);
     if (pMetadataSchema.getId() == null) {
       output.println("Write metadata schema: ");
       if (verbose) {
         PrintUtil.printMetadataSchema(pMetadataSchema);
       }
       MetaDataSchema mds = bmdrc.addMetadataSchema(pMetadataSchema, properties.getUserGroup()).getEntities().get(0);
-      pMetadataSchema.setId(mds.getId());
-      output.println("Write metadata schema: " + returnValue.getStatus());
+      if (mds != null) {
+        returnValue = new CommandStatus(Status.SUCCESSFUL);
+        pMetadataSchema.setId(mds.getId());
+        output.println("Write metadata schema: " + returnValue.getStatus());
+      }
     }
-    if ((pInvestigationId != null) && (pMetadataSchema.getMetaDataSchemaUrl() != null)) {
+    if ((pInvestigationId != null) && (pMetadataSchema.getId() != null)) {
       output.println("Add metadata schema to investigation: ");
       if (verbose) {
         PrintUtil.printMetadataSchema(pMetadataSchema);
       }
       InvestigationWrapper addMetadataSchemaToInvestigation = bmdrc.addMetadataSchemaToInvestigation(pInvestigationId, pMetadataSchema, properties.getUserGroup());
-      output.println("No of new metadata schemas: " + addMetadataSchemaToInvestigation.getEntities().get(0).getMetaDataSchema().size());
-      output.println("Add metadata schema to investigation: " + returnValue.getStatus());
+      if (addMetadataSchemaToInvestigation != null) {
+        returnValue = new CommandStatus(Status.SUCCESSFUL);
+        output.println("No of new metadata schemas: " + addMetadataSchemaToInvestigation.getEntities().get(0).getMetaDataSchema().size());
+        output.println("Add metadata schema to investigation: " + returnValue.getStatus());
+      }
     }
     return returnValue;
   }
@@ -1159,7 +1174,7 @@ public class GenericSetupClient extends AbstractGenericRestClient {
    *
    * @param pKey Key of the value.
    * @param pValue Old/default value.
-   * @return New value.
+   * @return new value.
    */
   private String queryStringWithDefaultValue(String pKey, String pValue) {
     output.format("%s [%s]:\n", pKey, pValue);
@@ -1172,7 +1187,7 @@ public class GenericSetupClient extends AbstractGenericRestClient {
    *
    * @param pKey Key of the value.
    * @param pValue Old/default value.
-   * @return New value.
+   * @return new value.
    */
   private Date queryDateWithDefaultValue(String pKey, Date pValue) {
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");

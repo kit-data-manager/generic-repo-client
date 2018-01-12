@@ -1,16 +1,16 @@
 Generic Repo Client Documentation
 =================================
-Contact <support@kitdatamanager.net>
+Contact <support@datamanager.kit.edu>
 :toc: left
 :toclevels: 3
 :iconsdir: ./icons
 :icons: font
 :max-width: 90em
 :author:    KIT Data Manager Dev Team
-:email:     support@kitdatamanager.net
-:revdate:   February 02, 2016
-:revnumber: 1.3.0
-:website: http://kitdatamanager.net/index.php/kit-data-manager
+:email:     support@datamanager.kit.edu
+:revdate:   ${datestamp}
+:revnumber: ${project.version}
+:website: http://datamanager.kit.edu/index.php/kit-data-manager
 
 
 .Preliminary Remarks
@@ -23,11 +23,10 @@ If you are struggling with the terms
 - Group
 - Investigation
 
-please read the documentation of the http://kitdatamanager.net/dama/manual/[KIT Data Manager] first.
+please read the documentation of the http://datamanager.kit.edu/dama/manual/[KIT Data Manager] first.
 **********************************************************************
 
-About this documentation
-------------------------
+== About this documentation
 This documentation gives a brief overview about the usage of the Generic Repo Client (GRC) via the commandline.
 The **GRC** contains two parts:
 
@@ -41,11 +40,23 @@ classes:
 - GenericAccessClient (see link:../apidocs/edu/kit/dama/rest/client/access/GenericAccessClient.html[GenericAccessClient (javadoc)])
 
 
-For the impatient
-~~~~~~~~~~~~~~~~~
+=== For the impatient
 For those who don't want to create more sophisticated metadata see the section <<quicksetup, 'Quick Setup'>>
+
+=== Introduction
+The commandline interface is accessible via two commands:
+
+bin/setupRepo::
+This command is responsible for setup connection to repository and webDAV which is
+used as transfer protocol and to create/edit the administrative metadata supported
+by the KIT Data Manager. (see <<Setup Administrative Metadata>>)
+bin/repoClient::
+This command supports ingest/list/access of digital objects. (see <<Generic Repo Client>>)
+
+Both commands are divided in subcommands.
+Each subcommand has specific options to configure/parameterize the commands.
 
 include::setupRepo.txt[]
 include::quickSetup.txt[]
 include::repoClient.txt[]
-
+include::extendIngestClient.txt[]

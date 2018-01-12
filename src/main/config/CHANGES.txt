@@ -1,0 +1,58 @@
+ =======================================================================
+ ==  CHANGES.txt
+ =======================================================================
+
+*******************************************************************************
+Generic Repo Client 1.5 Release - 29/05/2017 (dd/mm/yyyy) 
+*******************************************************************************
+IMPROVE - Ingest multiple directories in parallel
+NEW - Support for KIT Data Manager 1.5 (This version is not backward compatible)
+NEW - Support full text search (METS only)
+
+*******************************************************************************
+Generic Repo Client 1.4.2 Release - 03/02/2017 (dd/mm/yyyy) 
+*******************************************************************************
+FIX - Test for REST credentials was broken with KIT DM 1.4.                                           
+
+*******************************************************************************
+Generic Repo Client 1.4.1 Release - 01/12/2016 (dd/mm/yyyy)
+*******************************************************************************
+FIX - Investigation may be generated during setup.
+IMPROVE - Improve documentation
+API - Support for ingesting multiple directories at once.
+NEW - Support for plugins extending ingest client.
+NEW - Example plugin (incl. code)
+NEW - Drag'n drop client for windows.
+NEW - Webdav settings work with KIT Data Manager 1.4+
+
+*******************************************************************************
+Generic Repo Client 1.4 Release - 21/07/2016 (dd/mm/yyyy)
+*******************************************************************************
+NEW - Define interfaces for external code using inversion-of-control-pattern.
+IMPROVE - Add sample code to documentation
+IMPROVE - Test for webdav access point now also test for write access
+
+*******************************************************************************
+Generic Repo Client 1.3 Release - 21/06/2016 (dd/mm/yyyy)
+*******************************************************************************
+API - Rename GenericRestClient -> GenericRepoClient
+FIX - Download also possible with KIT DM 1.2+
+UPDATE - KIT Data Manager libraries 1.3
+NEW - Possibility to use multiple configurations in parallel 
+NEW - Use environment variable for configuration file (REPO_SETTINGS)
+
+*******************************************************************************
+Generic Rest Client 1.2 Release - 02/09/2015 (dd/mm/yyyy)
+*******************************************************************************
+IMPROVE - Settings now stored per account.
+UPDATE - KIT Data Manager libraries 1.1
+
+*******************************************************************************
+Generic Rest Client 1.1 Release - 11/03/2015 (dd/mm/yyyy)
+*******************************************************************************
+UPDATE - new commands (setupRepo & repoClient)
+
+*******************************************************************************
+Generic Rest Client 1.0 Release - 23/01/2015 (dd/mm/yyyy)
+*******************************************************************************
+Initial Release

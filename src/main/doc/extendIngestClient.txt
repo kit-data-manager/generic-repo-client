@@ -1,0 +1,77 @@
+== Extend Ingest Client using Plugins
+
+=== Create Project
+Create a new maven project with dependency to GenericRepoClient. Implement a class
+implementing the IMetadata4Ingest interface.
+
+==== Edit pom.xml
+To register a new plugin the pom.xml has to be prepared like the following:
+
+[source,xml]
+--------------------------------------
+<plugin>
+  <groupId>eu.somatik.serviceloader-maven-plugin</groupId>
+  <artifactId>serviceloader-maven-plugin</artifactId>
+  <version>1.0.7</version> 
+  <configuration> 
+    <services>
+      <param>edu.kit.dama.rest.client.ingest.IMetadata4Ingest</param>
+    </services>
+  </configuration> 
+  <executions> 
+    <execution>
+      <goals> 
+        <goal>generate</goal>
+      </goals>
+    </execution> 
+  </executions> 
+</plugin>
+
+<dependencies>
+  <dependency>
+    <groupId>edu.kit.dama.rest</groupId>
+    <artifactId>GenericRepoClient</artifactId>
+    <version>1.5</version>
+  </dependency>
+</dependencies>
+--------------------------------------
+
+=== Register Plugin
+That’s it. Now you may build and add the jar file in the lib directory
+and start GenericRepoClient.
+
+=== Existing Plugins
+There exists one example plugin which is ready to use in the plugins folder.
+Please copy the jar file from plugins to lib folder.
+Next time an ingest is started a Dialog will appear for each folder querying
+for title and note of the digital object. 
+
+NOTE: There should be only one plugin at once in lib folder!
+
+=== Sample Code
+
+see 
+link:code\DialogPlugin4Ingest.java[Java code]
+
+== Drag'n Drop Client (Windows)
+There is also a drag'n drop client for Windows located in the bin folder (DragAndDropClient.bat). 
+It's not possible to move the file to another location but shortcuts are allowed. 
+Creating a shortcut of this file on desktop may be most convenient. 
+(Drag'n drop file to desktop while pressing ALT-Key.)
+
+=== Requirements
+NOTE: For ingesting digital objects the connections to the repository and to webDAV
+have to be initialized in beforehand. Therefore the command **bin/setupRepo init -a**
+has to be executed at least once.
+To test the settings use the command **bin/setupRepo init -a -d** (For more details
+see <<init>>)
+
+=== Usage
+It's possible to ingest directories to repository by dropping them on the batch
+file or its shortcut. Only directories are allowed and each selected directory 
+will be registered as digital object.
+If there are any errors please consult the console or the log file located in the
+log directory.
+
+NOTE: While using drag'n drop client there should be a plugin installed. Otherwise all
+digital objects will have the same note.

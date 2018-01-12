@@ -41,6 +41,7 @@ import edu.kit.dama.rest.mdm.base.client.InvestigationBuilder;
 import edu.kit.dama.rest.mdm.base.client.StudyBuilder;
 import edu.kit.dama.rest.staging.types.StagingAccessPointConfigurationWrapper;
 import edu.kit.dama.staging.entities.StagingAccessPointConfiguration;
+import edu.kit.dama.util.Constants;
 import edu.kit.lsdf.adalapi.exception.AdalapiException;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
@@ -313,9 +314,10 @@ public class DataManagerPropertiesHelper implements IDataManagerRestUrl {
 
     return success;
   }
-  
+
   /**
    * Save edited settings if there are any changes.
+   *
    * @param pPropertiesChanged Changes in properties.
    */
   private void saveSettings(boolean pPropertiesChanged) {
@@ -503,6 +505,14 @@ public class DataManagerPropertiesHelper implements IDataManagerRestUrl {
           //invalid database content...at least one group is expected
           throw new IllegalStateException("Test query for group count returned 0. Each KIT Data Manager instance should have at least one default group 'USERS' configured. "
                   + "Please check your repository system instance for any misconfiguration.");
+        } else {
+          // Since KIT DM 1.4 also unauthorized request will get a valid answer.
+          // Check for world credentials.
+          UserDataWrapper user = userGroupClient.getUserById(-1); // Get actual user
+          if (user.getEntities().get(0).getDistinguishedName().equals(Constants.WORLD_USER_ID)) {
+            noOfGroups = 0;
+            throw new IllegalStateException("Query for user returned 'WORLD' user. --> Invalid credentials");
+          }
         }
         validCredentials = true;
       } catch (Exception ex) {
@@ -526,12 +536,7 @@ public class DataManagerPropertiesHelper implements IDataManagerRestUrl {
     if (validCredentials && !testSettings) {
       output.println("REST credentials are valid!");
     }
-    if (context != null) {
-      context.setAccessKey(newContext.getAccessKey());
-      context.setAccessSecret(newContext.getAccessSecret());
-    } else {
-      context = newContext;
-    }
+    context = newContext;
     // </editor-fold>
 
 //    // <editor-fold defaultstate="collapsed" desc="Set user id">
@@ -629,11 +634,11 @@ public class DataManagerPropertiesHelper implements IDataManagerRestUrl {
    */
   private boolean testInvestigation() throws InvalidDataManagerPropertiesException {
     boolean propertiesChanged = false;
-    BaseMetaDataRestClient baseMetaDataClient = new BaseMetaDataRestClient(restServerUrl + REST_BASE_META_DATA_PATH, context);
 
     // <editor-fold defaultstate="collapsed" desc="Select investigation">
-    int index = 0;
+    int index;
     long studyId = 0;
+    LOGGER.trace("Context: {} / {}", context.getAccessKey(), context.getAccessSecret());
     int noOfInvestigations = baseMetaDataClient.getInvestigationCount(studyId, properties.getUserGroup(), context).getCount();
     if (noOfInvestigations > 0) {
       InvestigationWrapper allInvestigations = baseMetaDataClient.getAllInvestigations(studyId, 0, noOfInvestigations, properties.getUserGroup(), context);
@@ -788,7 +793,7 @@ public class DataManagerPropertiesHelper implements IDataManagerRestUrl {
         ProtocolSettings.getSingleton().overwriteConfiguration(configuration);
       }
       LOGGER.debug("Overwriting the default configuration with the specific configuration of generic ingest client.");
-      AbstractFile af = new AbstractFile(new URL(webDavUrl));
+      AbstractFile af = new AbstractFile(new URL(webDavUrl + "/USERS"));
       af.list();
       AbstractFile createDirectory = af.createDirectory(UUID.randomUUID().toString());
       if (createDirectory.exists()) {

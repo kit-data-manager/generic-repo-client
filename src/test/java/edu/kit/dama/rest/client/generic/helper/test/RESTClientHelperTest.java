@@ -49,7 +49,7 @@ import edu.kit.dama.rest.basemetadata.types.DigitalObjectWrapper;
 import edu.kit.dama.rest.basemetadata.types.InvestigationWrapper;
 import edu.kit.dama.rest.basemetadata.types.StudyWrapper;
 import edu.kit.dama.rest.client.IDataManagerRestUrl;
-import edu.kit.dama.rest.staging.client.impl.StagingServiceRESTClient;
+import edu.kit.dama.rest.staging.client.impl.StagingRestClient;
 import edu.kit.dama.rest.staging.types.DownloadInformationWrapper;
 import edu.kit.dama.rest.staging.types.IngestInformationWrapper;
 import edu.kit.dama.rest.client.generic.helper.RESTClientHelper;
@@ -57,7 +57,7 @@ import edu.kit.dama.staging.entities.download.DownloadInformation;
 import edu.kit.dama.staging.entities.ingest.INGEST_STATUS;
 import edu.kit.dama.staging.entities.ingest.IngestInformation;
 
-@PrepareForTest({UserGroupRestClient.class, SimpleRESTContext.class, RESTClientHelper.class, UserDataWrapper.class, BaseMetaDataRestClient.class, StagingServiceRESTClient.class})
+@PrepareForTest({UserGroupRestClient.class, SimpleRESTContext.class, RESTClientHelper.class, UserDataWrapper.class, BaseMetaDataRestClient.class, StagingRestClient.class})
 @RunWith(PowerMockRunner.class)
 public class RESTClientHelperTest {
 
@@ -71,14 +71,14 @@ public class RESTClientHelperTest {
 
   private BaseMetaDataRestClient baseMetaDataRestClient;
 
-  private StagingServiceRESTClient stagingClient;
+  private StagingRestClient stagingClient;
 
   @Before
   public void setup() throws Exception {
     restContext = PowerMockito.mock(SimpleRESTContext.class);
     groupRestClient = PowerMockito.mock(UserGroupRestClient.class);
     baseMetaDataRestClient = PowerMockito.mock(BaseMetaDataRestClient.class);
-    stagingClient = PowerMockito.mock(StagingServiceRESTClient.class);
+    stagingClient = PowerMockito.mock(StagingRestClient.class);
     clientHelper = new RESTClientHelper(restContext, "http://kit.dm.demourl/");
   }
 
@@ -503,15 +503,15 @@ public class RESTClientHelperTest {
    */
   @Test
   public void createIngestEntitytest() throws Exception {
-    PowerMockito.whenNew(StagingServiceRESTClient.class.getConstructor(String.class, SimpleRESTContext.class)).withArguments("http://kit.dm.demourl" + IDataManagerRestUrl.REST_STAGING_PATH, restContext).thenReturn(stagingClient);
+    PowerMockito.whenNew(StagingRestClient.class.getConstructor(String.class, SimpleRESTContext.class)).withArguments("http://kit.dm.demourl" + IDataManagerRestUrl.REST_STAGING_PATH, restContext).thenReturn(stagingClient);
     IngestInformationWrapper ingestWrapper = new IngestInformationWrapper();
-    List<IngestInformation> pEntities = new ArrayList<IngestInformation>();
+    List<IngestInformation> pEntities = new ArrayList<>();
     IngestInformation ingestInfo = new IngestInformation();
     ingestInfo.setStatusEnum(INGEST_STATUS.PRE_INGEST_SCHEDULED);
     pEntities.add(ingestInfo);
     ingestWrapper.setEntities(pEntities);
 
-    Mockito.when(stagingClient.createIngest("abcd", "accessMethod", new ArrayList<Long>(),"USERS", restContext)).thenReturn(ingestWrapper);
+    Mockito.when(stagingClient.createIngest("abcd", "accessMethod", "USERS")).thenReturn(ingestWrapper);
     IngestInformation createIngestEntity = clientHelper.createIngestEntity("abcd", "accessMethod", "USERS");
     Assert.assertEquals(INGEST_STATUS.PRE_INGEST_SCHEDULED, createIngestEntity.getStatusEnum());
   }
@@ -524,7 +524,7 @@ public class RESTClientHelperTest {
    */
   @Test
   public void getSpecifiedIngestInfotest() throws Exception {
-    PowerMockito.whenNew(StagingServiceRESTClient.class.getConstructor(String.class, SimpleRESTContext.class)).withArguments("http://kit.dm.demourl" + IDataManagerRestUrl.REST_STAGING_PATH, restContext).thenReturn(stagingClient);
+    PowerMockito.whenNew(StagingRestClient.class.getConstructor(String.class, SimpleRESTContext.class)).withArguments("http://kit.dm.demourl" + IDataManagerRestUrl.REST_STAGING_PATH, restContext).thenReturn(stagingClient);
     IngestInformationWrapper ingestWrapper = new IngestInformationWrapper();
     List<IngestInformation> pEntities = new ArrayList<IngestInformation>();
     IngestInformation ingestInfo = new IngestInformation();
@@ -546,7 +546,7 @@ public class RESTClientHelperTest {
    */
   @Test
   public void updateIngestStatustest() throws Exception {
-    PowerMockito.whenNew(StagingServiceRESTClient.class.getConstructor(String.class, SimpleRESTContext.class)).withArguments("http://kit.dm.demourl" + IDataManagerRestUrl.REST_STAGING_PATH, restContext).thenReturn(stagingClient);
+    PowerMockito.whenNew(StagingRestClient.class.getConstructor(String.class, SimpleRESTContext.class)).withArguments("http://kit.dm.demourl" + IDataManagerRestUrl.REST_STAGING_PATH, restContext).thenReturn(stagingClient);
     ClientResponse ingestResponse = new ClientResponse(0, null, null, null);
 
     Mockito.when(stagingClient.updateIngest(12L, null, INGEST_STATUS.PRE_INGEST_FINISHED.getId())).thenReturn(ingestResponse);
@@ -561,7 +561,7 @@ public class RESTClientHelperTest {
    */
   @Test
   public void getIngestCounttest() throws Exception {
-    PowerMockito.whenNew(StagingServiceRESTClient.class.getConstructor(String.class, SimpleRESTContext.class)).withArguments("http://kit.dm.demourl" + IDataManagerRestUrl.REST_STAGING_PATH, restContext).thenReturn(stagingClient);
+    PowerMockito.whenNew(StagingRestClient.class.getConstructor(String.class, SimpleRESTContext.class)).withArguments("http://kit.dm.demourl" + IDataManagerRestUrl.REST_STAGING_PATH, restContext).thenReturn(stagingClient);
     IngestInformationWrapper ingestWrapper = new IngestInformationWrapper();
     ingestWrapper.setCount(20);
     Mockito.when(stagingClient.getIngestCount(restContext)).thenReturn(ingestWrapper);
@@ -577,7 +577,7 @@ public class RESTClientHelperTest {
    */
   @Test
   public void getIngestInfoIDstest() throws Exception {
-    PowerMockito.whenNew(StagingServiceRESTClient.class.getConstructor(String.class, SimpleRESTContext.class)).withArguments("http://kit.dm.demourl" + IDataManagerRestUrl.REST_STAGING_PATH, restContext).thenReturn(stagingClient);
+    PowerMockito.whenNew(StagingRestClient.class.getConstructor(String.class, SimpleRESTContext.class)).withArguments("http://kit.dm.demourl" + IDataManagerRestUrl.REST_STAGING_PATH, restContext).thenReturn(stagingClient);
     IngestInformationWrapper ingestWrapper = new IngestInformationWrapper();
     List<IngestInformation> pEntities = new ArrayList<IngestInformation>();
     IngestInformation ingestInfo1 = new IngestInformation();
@@ -603,7 +603,7 @@ public class RESTClientHelperTest {
    */
   @Test
   public void getIngestInfotest() throws Exception {
-    PowerMockito.whenNew(StagingServiceRESTClient.class.getConstructor(String.class, SimpleRESTContext.class)).withArguments("http://kit.dm.demourl" + IDataManagerRestUrl.REST_STAGING_PATH, restContext).thenReturn(stagingClient);
+    PowerMockito.whenNew(StagingRestClient.class.getConstructor(String.class, SimpleRESTContext.class)).withArguments("http://kit.dm.demourl" + IDataManagerRestUrl.REST_STAGING_PATH, restContext).thenReturn(stagingClient);
     IngestInformationWrapper ingestWrapper = new IngestInformationWrapper();
     List<IngestInformation> pEntities = new ArrayList<IngestInformation>();
     IngestInformation ingestInfo1 = new IngestInformation();
@@ -631,7 +631,7 @@ public class RESTClientHelperTest {
    */
   @Test
   public void getIngestInformationByDOItest() throws NoSuchMethodException, SecurityException, Exception {
-    PowerMockito.whenNew(StagingServiceRESTClient.class.getConstructor(String.class, SimpleRESTContext.class)).withArguments("http://kit.dm.demourl" + IDataManagerRestUrl.REST_STAGING_PATH, restContext).thenReturn(stagingClient);
+    PowerMockito.whenNew(StagingRestClient.class.getConstructor(String.class, SimpleRESTContext.class)).withArguments("http://kit.dm.demourl" + IDataManagerRestUrl.REST_STAGING_PATH, restContext).thenReturn(stagingClient);
     IngestInformationWrapper ingestWrapper = new IngestInformationWrapper();
     List<IngestInformation> pEntities = new ArrayList<IngestInformation>();
     IngestInformation ingestInfo = new IngestInformation();
@@ -661,7 +661,7 @@ public class RESTClientHelperTest {
     Investigation investigation = new Investigation();
     pEntities.add(investigation);
     investigationWrapper.setEntities(pEntities);
-    Mockito.when(baseMetaDataRestClient.getInvestigationById(12L, null,  restContext)).thenReturn(investigationWrapper);
+    Mockito.when(baseMetaDataRestClient.getInvestigationById(12L, null, restContext)).thenReturn(investigationWrapper);
 
     Investigation specificInvestigation = clientHelper.getSpecificInvestigation(12L);
     Assert.assertNotNull(specificInvestigation);
@@ -674,7 +674,7 @@ public class RESTClientHelperTest {
    */
   @Test
   public void getSpecificDownloadInformationtest() throws Exception {
-    PowerMockito.whenNew(StagingServiceRESTClient.class.getConstructor(String.class, SimpleRESTContext.class)).withArguments("http://kit.dm.demourl" + IDataManagerRestUrl.REST_STAGING_PATH, restContext).thenReturn(stagingClient);
+    PowerMockito.whenNew(StagingRestClient.class.getConstructor(String.class, SimpleRESTContext.class)).withArguments("http://kit.dm.demourl" + IDataManagerRestUrl.REST_STAGING_PATH, restContext).thenReturn(stagingClient);
     DownloadInformationWrapper downloadWrapper = new DownloadInformationWrapper();
     List<DownloadInformation> pEntities = new ArrayList<DownloadInformation>();
     DownloadInformation downloadInfo = new DownloadInformation();
@@ -695,14 +695,14 @@ public class RESTClientHelperTest {
    */
   @Test
   public void createDownloadEntitytest() throws Exception {
-    PowerMockito.whenNew(StagingServiceRESTClient.class.getConstructor(String.class, SimpleRESTContext.class)).withArguments("http://kit.dm.demourl" + IDataManagerRestUrl.REST_STAGING_PATH, restContext).thenReturn(stagingClient);
+    PowerMockito.whenNew(StagingRestClient.class.getConstructor(String.class, SimpleRESTContext.class)).withArguments("http://kit.dm.demourl" + IDataManagerRestUrl.REST_STAGING_PATH, restContext).thenReturn(stagingClient);
     DownloadInformationWrapper downloadWrapper = new DownloadInformationWrapper();
     List<DownloadInformation> pEntities = new ArrayList<DownloadInformation>();
     DownloadInformation downloadInfo = new DownloadInformation();
     pEntities.add(downloadInfo);
     downloadWrapper.setEntities(pEntities);
-    Mockito.when(stagingClient.createDownload("doiobjetid", "accessmoethod", restContext)).thenReturn(downloadWrapper);
-    DownloadInformation createDownloadEntity = clientHelper.createDownloadEntity("doiobjetid", "accessmoethod");
+    Mockito.when(stagingClient.createDownload("doiobjectid", "accessmethod", "USERS")).thenReturn(downloadWrapper);
+    DownloadInformation createDownloadEntity = clientHelper.createDownloadEntity("doiobjectid", "accessmethod", "USERS");
     Assert.assertNotNull(createDownloadEntity);
   }
 

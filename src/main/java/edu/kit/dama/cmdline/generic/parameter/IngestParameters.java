@@ -27,14 +27,17 @@ import edu.kit.jcommander.generic.status.CommandStatus;
 import edu.kit.dama.rest.client.ingest.GenericIngestClient;
 import edu.kit.jcommander.converter.FileConverter;
 import edu.kit.jcommander.validator.DirectoryValidator;
+import java.util.List;
 
-/** 
+/**
  * Class holding the commandline parameters for an ingest.
- * 
+ *
  * @author hartmann-v
  */
-@Parameters(commandNames = "ingest", commandDescription = "Ingest data to KIT Data Manager.")
-public class IngestParameters extends CommandLineParameters{
+@Parameters(commandNames = "ingest", commandDescription = "Ingest data from input directories "
+        + "to repository. Each input directory "
+        + "will be ingested independently as a digital object.")
+public class IngestParameters extends CommandLineParameters {
 
   /**
    * The logger
@@ -44,20 +47,19 @@ public class IngestParameters extends CommandLineParameters{
   /**
    * Parameter holding output directory for the output files.
    */
-  @Parameter(names = {"-i", "--inputdir"}, description = "The input directory. All files from this directory will be ingested to repository. Example -i C:\\data\\folder", required = true, converter = FileConverter.class, validateWith = DirectoryValidator.class)
-  public File inputDir;
+  @Parameter(names = {"-i", "--inputdir"}, description = "One or more input directories. All files from each directory will be ingested to repository. Example -i C:\\data\\folder1 C:\\data\\folder2", required = true, variableArity = true, converter = FileConverter.class, validateWith = DirectoryValidator.class)
+  public List<File> inputDir;
 
- /**
+  /**
    * Parameter holding output directory for the output files.
    */
   @Parameter(names = {"-n", "--note"}, description = "Note for the administrative metadata. Example -n \"Any important data.\"", required = true)
   public String note;
-  
+
   // ToDo: Add parameter for parent digital object and maybe also provenance metadata as XML
   // idea: Allow also multiple parameters.
   // @Parameter(names = {"-p", "--parent"}, description = "Digital object ID for the Note for the administrative metadata. Example -p bda80b0a-0c4d-463b-845c-66793875be9c")
   // @Parameter(names = {"-r", "--provenance"}, description = "Add provenance metadata as XML (maybe as a file???). Example -r provenanceMetadata.xml")
-  
   /**
    * Default constructor.
    */
