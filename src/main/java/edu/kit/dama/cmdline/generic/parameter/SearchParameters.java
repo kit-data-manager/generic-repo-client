@@ -29,7 +29,8 @@ import java.util.List;
  *
  * @author hartmann-v
  */
-@Parameters(commandNames = "search", commandDescription = "Search for digital objects linked to predefined user/group/investigation.")
+@Parameters(commandNames = "search", commandDescription = "Search for digital objects linked to predefined user/group/investigation. "
+        + "ATTENTION: This command is only available if MetaStore is installed.")
 public class SearchParameters extends CommandLineParameters {
 
   /**

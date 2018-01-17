@@ -118,6 +118,8 @@ a digital object is selected by keyboard.
 The **search** command search for digital objects whose metadata
 contain the given terms. The settings have to be initialized in beforehand. (see <<init>>)
 
+IMPORTANT: This command is only available if https://github.com/MetadataManagement4AppliedSciences/MetaStore[MetaStore] is installed.
+
 ===== Description
 Search in metadata of digital objects. 
 
