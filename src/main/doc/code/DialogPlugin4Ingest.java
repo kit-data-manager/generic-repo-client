@@ -31,8 +31,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * <p>
- * Example code adding proprietary information to the metadata of the digital
- * object.</p>
+ * Example code for adding custom information via a graphical dialog to the 
+ * metadata of the digital object.</p>
  *
  * <b>Implement Interface</b>
  * <p>
