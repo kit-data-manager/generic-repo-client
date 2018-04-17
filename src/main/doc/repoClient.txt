@@ -122,6 +122,8 @@ IMPORTANT: This command is only available if https://github.com/MetadataManageme
 
 ===== Description
 Search in metadata of digital objects. 
+In case of searching for only partial terms it is necessary to mask the term with '.*'.
+
 
 **Usage:** _bin/repoClient_ **search [options]**
 
@@ -136,7 +138,7 @@ Search in metadata of digital objects.
 
 | -i | --index | Which index/indices should be used for search. (not supported yet!) | _all
 
-| -t | --term | Search term(s) (only 1 term actually supported!)|
+| -t | --term | Search term(s) |
 
 | -y | --type | Which type(s) should be used for search. (not supported yet!) | _all
 
@@ -144,5 +146,9 @@ Search in metadata of digital objects.
 
 |====================================================================
 
-**Example:** _bin/repoClient search -t firstTerm -t secondTerm_
+**Examples:** _bin/repoClient search -t firstTerm -t secondTerm_
+
+_bin/repoClient search -t ".*Term"_
+
+IMPORTANT: Partial Terms with '.*' have to be quoted. 
 
