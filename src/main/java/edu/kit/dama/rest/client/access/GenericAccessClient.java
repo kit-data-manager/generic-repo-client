@@ -212,7 +212,8 @@ public class GenericAccessClient extends AbstractGenericRestClient {
   }
 
   /**
-   * Download data from repository.
+   * Full text search on repository.
+   * Supported features depends on installed plugin and its implementation.
    *
    * @param type Which types should be used for search.
    * @param index 'Which indices should be used for search.
