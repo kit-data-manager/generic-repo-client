@@ -122,7 +122,7 @@ IMPORTANT: This command is only available if https://github.com/MetadataManageme
 
 ===== Description
 Search in metadata of digital objects. 
-In case of searching for only partial terms it is necessary to mask the term with '.*'.
+In case of searching for only partial terms it is necessary to mask the term with **".*"** .
 
 
 **Usage:** _bin/repoClient_ **search [options]**
@@ -150,5 +150,5 @@ In case of searching for only partial terms it is necessary to mask the term wit
 
 _bin/repoClient search -t ".*Term"_
 
-IMPORTANT: Partial Terms with '.*' have to be quoted. 
+IMPORTANT: Partial Terms containing ".*" have to be quoted. 
 
