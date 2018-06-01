@@ -29,6 +29,8 @@ import edu.kit.dama.rest.basemetadata.client.impl.BaseMetaDataRestClient;
 import edu.kit.dama.rest.basemetadata.types.DigitalObjectWrapper;
 import edu.kit.dama.rest.client.AbstractGenericRestClient;
 import static edu.kit.dama.rest.client.IDataManagerRestUrl.REST_BASE_META_DATA_PATH;
+import static edu.kit.dama.rest.client.IDataManagerRestUrl.REST_DATA_ORGANIZATION_PATH;
+import static edu.kit.dama.rest.client.IDataManagerRestUrl.REST_STAGING_PATH;
 import edu.kit.dama.rest.client.access.impl.SearchRestClient;
 import edu.kit.dama.rest.client.generic.KIT_DM_REST_CLIENT;
 import edu.kit.dama.rest.dataorganization.client.impl.DataOrganizationRestClient;
@@ -42,8 +44,10 @@ import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import javax.xml.ws.WebServiceException;
+import org.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,6 +78,8 @@ public class GenericAccessClient extends AbstractGenericRestClient {
   private String digitalObjectId;
 
   private boolean interactive;
+
+  private static final int MINIMUM_LENGTH_SEARCH_TERM = 3;
 
   /**
    * The logger
@@ -212,8 +218,8 @@ public class GenericAccessClient extends AbstractGenericRestClient {
   }
 
   /**
-   * Full text search on repository.
-   * Supported features depends on installed plugin and its implementation.
+   * Full text search on repository. Supported features depends on installed
+   * plugin and its implementation.
    *
    * @param type Which types should be used for search.
    * @param index 'Which indices should be used for search.
@@ -221,26 +227,53 @@ public class GenericAccessClient extends AbstractGenericRestClient {
    * @return status of the command.
    */
   private CommandStatus searchData(List<String> type, List<String> index, List<String> term) {
+    PrintStream output = System.out;
+    returnStatus = new CommandStatus(Status.FAILED);
     try {
       DataManagerPropertiesImpl properties = testDataManagerSettings();
+      List<String> validTerms = new ArrayList<>();
+      for (String searchTerm : term) {
+        for (String partialTerm : searchTerm.split(" ")) {
+          if (partialTerm.length() >= MINIMUM_LENGTH_SEARCH_TERM) {
+            validTerms.add(partialTerm);
+          } else {
+            String warning = String.format("Term skipped: Search term '%s' is to short!", partialTerm);
+            output.println(warning);
+            LOGGER.warn(warning);
+          }
+        }
+      }
+      if (!validTerms.isEmpty()) {
+        StringBuffer header = new StringBuffer("Search for: ");
+        Iterator<String> iterator = validTerms.iterator();
+        header.append(String.format("'%s'", iterator.next()));
+        while (iterator.hasNext()) {
+          header.append(String.format(" OR '%s'", iterator.next()));
+        }
+        output.println(header.toString());
+        if (properties != null) {
+          // <editor-fold defaultstate="collapsed" desc="Initialize REST">
+          SimpleRESTContext context = new SimpleRESTContext(properties.getAccessKey(), properties.getAccessSecret());
+          SearchRestClient src = new SearchRestClient(properties.getRestUrl(), context);
+          String searchResultList;
+          searchResultList = src.getSearchResultList(properties.getUserGroup(), null, null, term.toArray(new String[1]), 20, context);
+          // Try to format result as JSON.
+          try {
+            JSONArray jsonArray = new JSONArray(searchResultList);
+            searchResultList = jsonArray.toString(2);
+          } catch (Exception ex) {
+            // print JSON unformatted!
+          }
+          output.println(searchResultList);
+          returnStatus = new CommandStatus(Status.SUCCESSFUL);
 
-      if (properties != null) {
-        // <editor-fold defaultstate="collapsed" desc="Initialize REST">
-        SimpleRESTContext context = new SimpleRESTContext(properties.getAccessKey(), properties.getAccessSecret());
-        SearchRestClient src = new SearchRestClient(properties.getRestUrl(), context);
-        String searchResultList;
-        searchResultList = src.getSearchResultList(properties.getUserGroup(), null, null, term.toArray(new String[1]), 20, context);
-        String header = String.format("Search for '%s':", term.get(0));
-        PrintStream output = System.out;
-        output.println(header);
-        output.println(searchResultList);
-        returnStatus = new CommandStatus(Status.SUCCESSFUL);
-
+        }
       }
     } catch (IllegalArgumentException iae) {
       LOGGER.error(null, iae);
       returnStatus = new CommandStatus(iae);
     }
+
     return getReturnStatus();
   }
 

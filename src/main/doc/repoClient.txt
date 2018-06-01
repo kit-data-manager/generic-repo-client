@@ -122,7 +122,6 @@ IMPORTANT: This command is only available if https://github.com/MetadataManageme
 
 ===== Description
 Search in metadata of digital objects. 
-In case of searching for only partial terms it is necessary to mask the term with **".*"** .
 
 
 **Usage:** _bin/repoClient_ **search [options]**
@@ -138,7 +137,7 @@ In case of searching for only partial terms it is necessary to mask the term wit
 
 | -i | --index | Which index/indices should be used for search. (not supported yet!) | _all
 
-| -t | --term | Search term(s) |
+| -t | --term | Search term(s) Each term has to contain at least 3 characters! |
 
 | -y | --type | Which type(s) should be used for search. (not supported yet!) | _all
 

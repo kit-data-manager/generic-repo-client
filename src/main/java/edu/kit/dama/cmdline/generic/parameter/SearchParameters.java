@@ -47,8 +47,7 @@ public class SearchParameters extends CommandLineParameters {
   /**
    * For which terms should be searched.
    */
-  @Parameter(names = {"-t", "--term"}, description = "Search term(s). In case of searching for only partial terms it is necessary to mask the term with '.*'."
-          + "Then the term has to be quoted! e.g.: \".*partialTerm.*\"")
+  @Parameter(names = {"-t", "--term"}, description = "Search term(s). Each term has to contain at least 3 characters!")
   public List<String> term;
   /**
    * Which fields should be used for search. (multiple fields are allowed) *Not*
