@@ -124,7 +124,7 @@ public class SearchRestClient extends AbstractRestClient {
         queryParams.add(QUERY_PARAMETER_TERM, index);
       }
     }
-    queryParams.add(QUERY_PARAMETER_MAX_NO_OF_HITS, pMaxNoOfHits);
+    queryParams.add(QUERY_PARAMETER_MAX_NO_OF_HITS, Integer.toString(pMaxNoOfHits));
     
     WebResource webResource = prepareWebResource(getWebResource(MASI_SEARCH_URL), queryParams);
     ClientResponse response = webResource.type(MediaType.APPLICATION_XML).get(ClientResponse.class);
