@@ -66,7 +66,7 @@ public class SearchRestClient extends AbstractRestClient {
   /**
    * The joker value. (all types, indices,...)
    */
-  protected static final String All_VALUES = "_all";
+  protected static final String ALL_VALUES = "_all";
 
   //</editor-fold>
   // <editor-fold defaultstate="collapsed" desc="URL components">
@@ -110,20 +110,22 @@ public class SearchRestClient extends AbstractRestClient {
         queryParams.add(QUERY_PARAMETER_INDEX, index);
       }
     } else {
-      queryParams.add(QUERY_PARAMETER_INDEX, All_VALUES);
+      queryParams.add(QUERY_PARAMETER_INDEX, ALL_VALUES);
     }
     if (pTypes != null) {
       for (String index : pTypes) {
         queryParams.add(QUERY_PARAMETER_TYPE, index);
       }
     } else {
-      queryParams.add(QUERY_PARAMETER_TYPE, All_VALUES);
+      queryParams.add(QUERY_PARAMETER_TYPE, ALL_VALUES);
     }
     if (pTerms != null) {
       for (String index : pTerms) {
         queryParams.add(QUERY_PARAMETER_TERM, index);
       }
     }
+    queryParams.add(QUERY_PARAMETER_MAX_NO_OF_HITS, pMaxNoOfHits);
+    
     WebResource webResource = prepareWebResource(getWebResource(MASI_SEARCH_URL), queryParams);
     ClientResponse response = webResource.type(MediaType.APPLICATION_XML).get(ClientResponse.class);
     try {
