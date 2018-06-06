@@ -57,6 +57,12 @@ public class SearchParameters extends CommandLineParameters {
   public List<String> field;
 
   /**
+   * Parameter for output messages.
+   */
+  @Parameter(names = {"-s", "--short"}, description = "Show only Digital Object IDs.", required = false)
+  public boolean shortList = false;
+
+  /**
    * Default constructor.
    */
   public SearchParameters() {

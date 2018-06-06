@@ -118,7 +118,7 @@ public class GenericAccessClient extends AbstractGenericRestClient {
    * @return Status of the command.
    */
   public static CommandStatus executeCommand(SearchParameters sp) {
-    return new GenericAccessClient().searchData(sp.index, sp.type, sp.term);
+    return new GenericAccessClient().searchData(sp.index, sp.type, sp.term, sp.shortList);
   }
 
   /**
@@ -224,9 +224,10 @@ public class GenericAccessClient extends AbstractGenericRestClient {
    * @param type Which types should be used for search.
    * @param index 'Which indices should be used for search.
    * @param term Terms to search for in given types and indices.
+   * @param pShort List only Digital Object IDs.
    * @return status of the command.
    */
-  private CommandStatus searchData(List<String> type, List<String> index, List<String> term) {
+  private CommandStatus searchData(List<String> type, List<String> index, List<String> term, boolean pShort) {
     PrintStream output = System.out;
     returnStatus = new CommandStatus(Status.FAILED);
     try {
@@ -256,7 +257,7 @@ public class GenericAccessClient extends AbstractGenericRestClient {
           SimpleRESTContext context = new SimpleRESTContext(properties.getAccessKey(), properties.getAccessSecret());
           SearchRestClient src = new SearchRestClient(properties.getRestUrl(), context);
           String searchResultList;
-          searchResultList = src.getSearchResultList(properties.getUserGroup(), null, null, term.toArray(new String[1]), 20, context);
+          searchResultList = src.getSearchResultList(properties.getUserGroup(), null, null, term.toArray(new String[1]), 20, context, pShort);
           // Try to format result as JSON.
           try {
             JSONArray jsonArray = new JSONArray(searchResultList);

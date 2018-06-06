@@ -64,6 +64,10 @@ public class SearchRestClient extends AbstractRestClient {
    */
   protected static final String QUERY_PARAMETER_MAX_NO_OF_HITS = "size";
   /**
+   * The maximum number of hits.
+   */
+  protected static final String QUERY_PARAMETER_SHORT = "short";
+  /**
    * The joker value. (all types, indices,...)
    */
   protected static final String ALL_VALUES = "_all";
@@ -96,9 +100,10 @@ public class SearchRestClient extends AbstractRestClient {
    * @param pTerms terms which should be looked for.
    * @param pMaxNoOfHits maximum number of hits.
    * @param pSecurityContext initial context
+   * @param pShort list only Digital Object IDs.
    * @return String with all documents.
    */
-  public String getSearchResultList(String pGroupId, String[] pIndices, String[] pTypes, String[] pTerms, int pMaxNoOfHits, SimpleRESTContext pSecurityContext) {
+  public String getSearchResultList(String pGroupId, String[] pIndices, String[] pTypes, String[] pTerms, int pMaxNoOfHits, SimpleRESTContext pSecurityContext, boolean pShort) {
     String returnValue = null;
     MultivaluedMap queryParams = new MultivaluedMapImpl();
     setFilterFromContext(pSecurityContext);
@@ -125,6 +130,7 @@ public class SearchRestClient extends AbstractRestClient {
       }
     }
     queryParams.add(QUERY_PARAMETER_MAX_NO_OF_HITS, Integer.toString(pMaxNoOfHits));
+    queryParams.add(QUERY_PARAMETER_SHORT, Boolean.valueOf(pShort).toString());
     
     WebResource webResource = prepareWebResource(getWebResource(MASI_SEARCH_URL), queryParams);
     ClientResponse response = webResource.type(MediaType.APPLICATION_XML).get(ClientResponse.class);
