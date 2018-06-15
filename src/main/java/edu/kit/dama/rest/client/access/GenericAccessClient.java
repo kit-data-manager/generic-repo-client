@@ -249,7 +249,7 @@ public class GenericAccessClient extends AbstractGenericRestClient {
         Iterator<String> iterator = validTerms.iterator();
         header.append(String.format("'%s'", iterator.next()));
         while (iterator.hasNext()) {
-          header.append(String.format(" OR '%s'", iterator.next()));
+          header.append(String.format(" AND '%s'", iterator.next()));
         }
         output.println(header.toString());
         if (properties != null) {
@@ -257,7 +257,7 @@ public class GenericAccessClient extends AbstractGenericRestClient {
           SimpleRESTContext context = new SimpleRESTContext(properties.getAccessKey(), properties.getAccessSecret());
           SearchRestClient src = new SearchRestClient(properties.getRestUrl(), context);
           String searchResultList;
-          searchResultList = src.getSearchResultList(properties.getUserGroup(), null, null, term.toArray(new String[1]), 20, context, pShort);
+          searchResultList = src.getSearchResultList(properties.getUserGroup(), null, null, validTerms.toArray(new String[1]), 20, context, pShort);
           // Try to format result as JSON.
           try {
             JSONArray jsonArray = new JSONArray(searchResultList);
