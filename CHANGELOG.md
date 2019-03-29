@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 ### Security
 
+## [1.5.1] - 2019-03-29
+### Fixed
+- Exclude old dependencies of Tools-1.5.
+
 ## [1.5] - 2017-05-29
 ### Added
 - Support full text search (METS only)

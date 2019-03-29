@@ -53,11 +53,23 @@
       <groupId>edu.kit.dama.rest</groupId>
       <artifactId>DataOrganizationRestInterface</artifactId>
       <version>1.5</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.fzk.ipe</groupId>
+          <artifactId>Tools</artifactId>
+        </exclusion>
+      </exclusions> 
     </dependency>
     <dependency>
       <groupId>edu.kit.dama</groupId>
       <artifactId>StagingService</artifactId>
       <version>1.5</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.fzk.ipe</groupId>
+          <artifactId>Tools</artifactId>
+        </exclusion>
+      </exclusions> 
     </dependency>
     <dependency>
       <groupId>edu.kit.dama.rest</groupId>

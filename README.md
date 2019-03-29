@@ -19,7 +19,7 @@ user@localhost:/home/user/generic-repo-client/$ mvn assembly:assembly
 [INFO] Scanning for projects...
 [INFO]
 [INFO] ------------------------------------------------------------------------
-[INFO] Building GenericRepoClient 1.5
+[INFO] Building GenericRepoClient 1.5.1
 [INFO] ------------------------------------------------------------------------
 [...]
 user@localhost:/home/user/generic-repo-client/$
@@ -31,7 +31,6 @@ As soon as the assembly process has finished there will be a file named `Generic
 
 * [Project homepage](http://datamanager.kit.edu/index.php/kit-data-manager)
 * [Manual](http://datamanager.kit.edu/dama/manual/index.html)
-* [Bugtracker](http://datamanager.kit.edu/bugtracker/thebuggenie/)
 
 ## License
 
